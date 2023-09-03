@@ -36,7 +36,7 @@ def render_image_from_PyFleX(pyflex, height, width, debug_info='', draw_objects=
 
 
 
-pyflex.init()
+pyflex.init(False)
 
 time_step = 300
 dt = 1. / 60.

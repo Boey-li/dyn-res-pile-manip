@@ -29,9 +29,9 @@ namespace py = pybind11;
 #include "core/cloth.h"
 
 #include "external/SDL2-2.0.4/include/SDL.h"
-#include "external/glad/include/glad/glad.h"
+#include "external/glad/include/glad/glad.h" //added
 
-#include "bindings/opengl/shader.h"
+#include "bindings/opengl/shader.h" //added
 #include "shaders.h"
 #include "imgui.h"
 #include "shadersDemoContext.h"

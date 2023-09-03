@@ -8,7 +8,7 @@ def rand_float(lo, hi):
     return np.random.rand() * (hi - lo) + lo
 
 
-pyflex.init()
+pyflex.init(False)
 
 x = rand_float(0.15, 0.349)
 y = rand_float(0.15, 0.349)
@@ -31,7 +31,7 @@ pyflex.set_scene(7, scene_params, 0)
 print("Scene Upper:", pyflex.get_scene_upper())
 print("Scene Lower:", pyflex.get_scene_lower())
 
-for i in range(150):
+for i in range(500): # default 150
     pyflex.step()
 
 pyflex.clean()

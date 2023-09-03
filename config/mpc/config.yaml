@@ -7,7 +7,7 @@ dataset:
   global_scale: 24 # 12 (ball, coffee); 24 (carrots, capsule)
   obj: "carrots" # "coffee"; "ball"; "capsule"; "carrots"; "coffee_capsule"
   particle_r: 0.125 # control the particle size of underlying simulation
-  cam_idx: 0
+  cam_idx: 10
   num_worker: 1
   wkspc_w: 5.0 # 2.5 (coffee, ball); 5.0 (carrots, capsule)
   headless: False
@@ -36,7 +36,7 @@ mpc:
   # MPC param
   n_mpc: 20
   n_look_ahead: 1
-  n_sample: 50 # 100 on server!
+  n_sample: 10 # 50 default, 100 on server! sample M action sequences
   n_update_iter: 200
   gd_loop: 1
   mpc_type: 'GD'
@@ -66,7 +66,7 @@ train_res_cls:
   state_h: 224
   state_w: 224
   res_dim: 6
-  batch_size: 16
+  batch_size: 16 # default 16
   num_worker: 10
   n_epoch: 2000
   adam_beta1: 0.9

@@ -1,5 +1,5 @@
 dataset:
-  folder: "data/gnn_dyn_data_custom" # gen_data
+  folder: "data/gnn_dyn_data" # gen_data data/gnn_dyn_data_custom
   init_pos: 'spread'
   # initialization options:
   # - 'spread': deterministic spreaded object pile
@@ -7,8 +7,8 @@ dataset:
   # - 'rand_spread': random spreaded object pile
   # - 'rand_sparse_spread': random sparse spreaded object pile
   global_scale: 24
-  n_episode: 2000
-  n_timestep: 10
+  n_episode: 100 #2000
+  n_timestep: 5 #10
   obj: "carrots"
   particle_r: 0.125
   cam_idx: 0
@@ -20,12 +20,12 @@ dataset:
 train:
   data_root: "data/gnn_dyn_data"
   random_seed: 42
-  n_epoch: 2000
+  n_epoch: 1 #default 2000
   lr: 0.001
   adam_beta1: 0.9
-  batch_size: 4
+  batch_size: 1 #default 4
   nf_hidden: 64
-  num_workers: 5
+  num_workers: 0 #default 5
   train_valid_ratio: 0.9
   log_per_iter: 50
   ckp_per_iter: 1000

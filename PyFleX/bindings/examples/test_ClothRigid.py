@@ -11,7 +11,7 @@ def rand_float(lo, hi):
     return np.random.rand() * (hi - lo) + lo
 
 
-pyflex.init()
+pyflex.init(False)
 
 time_step = 300
 dimx_cloth = 17
