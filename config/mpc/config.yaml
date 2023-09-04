@@ -1,5 +1,5 @@
 dataset:
-  init_pos: 'rand_spread'
+  init_pos: 'rand_sparse_spread'
   # initialization options:
   # - 'rand_blob': random blob-shape object pile
   # - 'rand_spread': random spreaded object pile
@@ -7,12 +7,12 @@ dataset:
   global_scale: 24 # 12 (ball, coffee); 24 (carrots, capsule)
   obj: "carrots" # "coffee"; "ball"; "capsule"; "carrots"; "coffee_capsule"
   particle_r: 0.125 # control the particle size of underlying simulation
-  cam_idx: 10
+  cam_idx: 0
   num_worker: 1
   wkspc_w: 5.0 # 2.5 (coffee, ball); 5.0 (carrots, capsule)
   headless: False
   cont_motion: False # whether the robot action is continuous
-  robot_type: 'franka' # kinova; franka
+  robot_type: 'franka' # kinova; franka; xarm6
 
 mpc:
   sigma: 0.3

@@ -91,13 +91,24 @@ class FlexRobotHelper:
         with open(robot_path, 'r') as f:
             robot = f.read()
         robot_data = BeautifulSoup(robot, 'xml')
+        # print('robot data', robot_data)
+        
         links = robot_data.find_all('link')
+        # print('num links', len(links)) # franka: 13
+        # print('type', type(links[0])) # bs4.element.Tag
+        # print('links', links, '\n') # <link name="panda_link0" ...
+        
+        # paint the robot
         self.num_meshes = 0
         self.has_mesh = np.ones(len(links), dtype=bool)
         for i in range(len(links)):
             link = links[i]
             if link.find_all('geometry'):
+                # print(link.find_all('geometry')) # <geometry> <mesh filename="meshes/collision/link0.obj"/> 
+                
                 mesh_name = link.find_all('geometry')[0].find_all('mesh')[0].get('filename')
+                # print(mesh_name)
+                
                 if mesh_name[-4:] == '.STL':
                     mesh_name = mesh_name[:-4] + '.obj'
                 pyflex.add_mesh(os.path.join(robot_path_par, mesh_name), globalScaling, 0, np.ones(3))
@@ -105,7 +116,7 @@ class FlexRobotHelper:
             else:
                 self.has_mesh[i] = False
         
-        self.num_link = len(links)
+        self.num_link = len(links) # franka: 13
         self.state_pre = None
 
         return self.robotId
@@ -119,9 +130,15 @@ class FlexRobotHelper:
         state_cur = []
         base_com_pos, base_com_orn = p.getBasePositionAndOrientation(self.robotId)
         di = p.getDynamicsInfo(self.robotId, -1)
+        # print('di', di) 
+        # (0.0, 0.5, (0.0, 0.0, 0.0), (0.0, 0.0, 1.2000000000000002), (0.0, 0.0, 0.0, 1.0), 0.0, 0.0, 0.0, -1.0, -1.0, 2, 0.001)
         local_inertial_pos, local_inertial_orn = di[3], di[4]
+        
         pos_inv, orn_inv = p.invertTransform(local_inertial_pos, local_inertial_orn)
         pos, orn = p.multiplyTransforms(base_com_pos, base_com_orn, pos_inv, orn_inv)
+        # print('pos', pos, 'orn', orn)
+        # pos (-13.5, 0.0, -1.2000000476837158) orn (0.0, 0.0, 0.0, 1.0)
+    
         state_cur.append(list(pos) + [1] + list(orn))
 
         for l in range(self.num_link-1):
@@ -131,6 +148,8 @@ class FlexRobotHelper:
             state_cur.append(list(pos) + [1] + list(orn))
         
         state_cur = np.array(state_cur)
+        # print('state_cur', state_cur)
+        
         shape_states = np.zeros((self.num_meshes, 14))
         if self.state_pre is None:
             self.state_pre = state_cur.copy()
@@ -138,10 +157,12 @@ class FlexRobotHelper:
         mesh_idx = 0
         for i in range(self.num_link):
             if self.has_mesh[i]:
+                # pos + [1]
                 shape_states[mesh_idx, 0:3] = np.matmul(
                     self.transform_bullet_to_flex, state_cur[i, :4])[:3]
                 shape_states[mesh_idx, 3:6] = np.matmul(
                     self.transform_bullet_to_flex, self.state_pre[i, :4])[:3]
+                # orientation
                 shape_states[mesh_idx, 6:10] = quaternion_from_matrix(
                     np.matmul(self.transform_bullet_to_flex,
                             quaternion_matrix(state_cur[i, 4:])))
@@ -164,11 +185,13 @@ class FlexEnv(gym.Env):
         self.is_real = False
 
         # set up pybullet
-        # physicsClient = p.connect(p.GUI)
-        physicsClient = p.connect(p.DIRECT)
+        physicsClient = p.connect(p.GUI) # pybullet visualization 
+        # physicsClient = p.connect(p.DIRECT)
         p.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
         p.setGravity(0,0,-10)
         self.planeId = p.loadURDF("plane.urdf")
+        # self.planeId = p.loadURDF('table/table.urdf') # table in pybullet data folder
+        # self.planeID = p.loadURDF('table_square/table_square.urdf')
 
         # set up pyflex
         self.screenWidth = 720
@@ -203,13 +226,16 @@ class FlexEnv(gym.Env):
         # define robot information
         self.flex_robot_helper = FlexRobotHelper()
         if self.robot_type == 'franka':
-            self.end_idx = 11
-            self.num_dofs = 9
+            self.end_idx = 11 # 11
+            self.num_dofs = 9 # 9
             self.left_finger_joint = 9
             self.right_finger_joint = 10
         elif self.robot_type == 'kinova':
             self.end_idx = 7
             self.num_dofs = 7
+        elif self.robot_type == 'xarm6':
+            self.end_idx = 6
+            self.num_dofs = 6
 
         # define action space
         self.act_dim = 4
@@ -231,7 +257,7 @@ class FlexEnv(gym.Env):
                 #                         targetPosition=jointPositions[index],
                 #                         targetVelocity=0)
                 if self.robot_type == 'franka':
-                    if index < self.num_dofs - 2:
+                    if index < self.num_dofs - 2: #?
                         pyflex.resetJointState(self.flex_robot_helper, j, jointPositions[index])
                     else:
                         pyflex.resetJointState(self.flex_robot_helper, j, 0.)
@@ -252,6 +278,8 @@ class FlexEnv(gym.Env):
         #     - action[2-3] - ending position
         # Outputs:
         #  - obs: an RGBD image
+        
+        # start and end 3d positions
         if self.act_dim == 4:
             if self.robot_type == 'franka':
                 h = self.global_scale / 8.0
@@ -264,19 +292,24 @@ class FlexEnv(gym.Env):
         elif self.act_dim == 6:
             s_2d = action[:3]
             e_2d = action[3:]
+        
+        # pusher angle depending on x-axis
         if (s_2d - e_2d)[0] == 0:
             pusher_angle = np.pi/2
         else:
             pusher_angle = np.arctan((s_2d - e_2d)[1]/(s_2d - e_2d)[0])
+        
+        # robot orientation
         if self.robot_type == 'franka':
-            orn = np.array([0.0, np.pi, pusher_angle+np.pi/2])
+            orn = np.array([0.0, np.pi, pusher_angle+np.pi/2]) #?
         elif self.robot_type == 'kinova':
             orn = np.array([0.0, np.pi, pusher_angle])
         # halfEdge = np.array([0.05, 1.0, 0.4])
         # quat = quatFromAxisAngle(
         #     axis=np.array([0., 1., 0.]),
         #     angle=-pusher_angle)
-
+        
+        # create way points
         if self.cont_motion:
             # curr_pt = p.getJointState(self.robotId, self.end_idx)[0]
             if self.last_ee is None:
@@ -286,11 +319,17 @@ class FlexEnv(gym.Env):
         else:
             way_pts = [s_2d + np.array([0., 0., self.global_scale / 24.0]), s_2d, e_2d, e_2d + np.array([0., 0., self.global_scale / 24.0])]
             self.reset_panda(self.rest_joints)
+            # print('way_pts', way_pts)
+            # action: [ 4.90779    -4.9509096  -0.12206964  1.6431044 ]
+            # way_pts: [array([ 4.90779018, -4.95090961,  4.        ]), array([ 4.90779018, -4.95090961,  3.        ]), array([-0.12206964,  1.64310443,  3.        ]), array([-0.12206964,  1.64310443,  4.        ])]
+
+        # steps from waypoints
         speed = 1.0/50.
         for i_p in range(len(way_pts)-1):
             s = way_pts[i_p]
             e = way_pts[i_p+1]
             steps = int(np.linalg.norm(e-s)/speed) + 1
+            
             for i in range(steps):
                 end_effector_pos = s + (e - s) * i / steps
                 end_effector_orn = p.getQuaternionFromEuler(orn)
@@ -312,13 +351,19 @@ class FlexEnv(gym.Env):
                     else:
                         for i, obs_i in enumerate(obs):
                             video_recorder[i].write(obs_i[..., :3][..., ::-1].astype(np.uint8))
+                
                 pyflex.step()
+                
                 if math.isnan(self.get_positions().reshape(-1, 4)[:, 0].max()):
                     print('simulator exploded when action is ', action)
                     return None
+            
             self.last_ee = end_effector_pos.copy()
+        
+        
         if not self.cont_motion:
             self.reset_panda()
+        
         for i in range(200):
             if video_recorder:
                 obs = self.render(add_cam_idx=add_cam_idx)
@@ -328,8 +373,8 @@ class FlexEnv(gym.Env):
                     for i, obs_i in enumerate(obs):
                         video_recorder[i].write(obs_i[..., :3][..., ::-1].astype(np.uint8))
             pyflex.step()
+        
         obs = self.render(add_cam_idx=add_cam_idx)
-
         return obs
     
     def clip_action(self, action):
@@ -342,6 +387,7 @@ class FlexEnv(gym.Env):
                        np.array([self.cont_centers[0][0], -self.cont_centers[0][2]-self.cont_half_w]),
                        np.array([self.cont_centers[0][0], -self.cont_centers[0][2]+self.cont_half_w])]
         shift_arr = np.array([0, 0])
+        
         if self.act_dim == 4:
             s_2d = action[:2]
             e_2d = action[2:]
@@ -353,6 +399,7 @@ class FlexEnv(gym.Env):
             pusher_angle = np.pi/2
         else:
             pusher_angle = np.arctan((s_2d - e_2d)[1]/(s_2d - e_2d)[0])
+        
         speed = 1.0/50.
         steps = int(np.linalg.norm(e_2d-s_2d)/speed) + 1
         for i in range(steps):
@@ -376,13 +423,16 @@ class FlexEnv(gym.Env):
         particles = self.get_positions()
         num_particles = particles.shape[0] // 4
         particles = particles.reshape(num_particles, 4)
+        
         rand_idx = np.random.choice(num_particles, n, replace=False)
         rand_particles = particles[rand_idx]
+        
         start_center = np.zeros((n, 2))
         start_center[:, 0] = rand_particles[:, 0]
         start_center[:, 1] = -rand_particles[:, 2]
         sigma = 0.5 * self.global_scale / 12.0
         start_center += np.random.normal(0, sigma, size=start_center.shape)
+        
         actions = np.zeros((n, self.act_dim))
         actions[:, :2] = np.clip(start_center, -self.wkspc_w, self.wkspc_w)
         actions[:, 2:4] = np.random.uniform(-self.wkspc_w, self.wkspc_w, n)
@@ -824,7 +874,7 @@ class FlexEnv(gym.Env):
         for i in range(500):
             pyflex.step()
 
-        # add wall
+        # add wall (pusher?)
         halfEdge = np.array([0.05, 1.0, self.global_scale/2.0])
         centers = [np.array([self.global_scale/2.0, 1.0, 0.0]),
                    np.array([0.0, 1.0, -self.global_scale/2.0]),
@@ -848,21 +898,25 @@ class FlexEnv(gym.Env):
         # add robot
         if self.robot_type == 'franka':
             self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'franka_panda/panda.urdf', [-4.5 * self.global_scale / 8.0, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale)
-            self.rest_joints = [np.pi*5/8, -np.pi/2, -np.pi/2, -np.pi*5/8, -np.pi/4, np.pi/2, np.pi/4, 0., 0.]
+            # self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'xarm/xarm6_robot.urdf', [-4.5 * self.global_scale / 8.0, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale)
+            self.rest_joints = [np.pi*5/8, -np.pi/2, -np.pi/2, -np.pi*5/8, -np.pi/4, np.pi/2, np.pi/4, 0., 0.]            
         elif self.robot_type == 'kinova':
             self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'kinova/urdf/GEN3_URDF_V12.urdf', [-0.5 * self.global_scale, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale)
             self.rest_joints = [0., np.pi/6., np.pi, -np.pi/2., 0., -np.pi/3., -np.pi/4]
         else:
             raise NotImplementedError
+        
         pyflex.set_shape_states(self.robot_to_shape_states(pyflex.getRobotShapeStates(self.flex_robot_helper)))
         for idx, joint in enumerate(self.rest_joints):
             pyflex.set_shape_states(self.robot_to_shape_states(pyflex.resetJointState(self.flex_robot_helper, idx, joint)))
-        self.num_joints = p.getNumJoints(self.robotId)
+        
+        self.num_joints = p.getNumJoints(self.robotId) # Franka: 12
         self.joints_lower = np.zeros(self.num_dofs)
         self.joints_upper = np.zeros(self.num_dofs)
         dof_idx = 0
         for i in range(self.num_joints):
             info = p.getJointInfo(self.robotId, i)
+            print(f"Joint {i}:", info)
             jointType = info[2]
             if (jointType == p.JOINT_PRISMATIC or jointType == p.JOINT_REVOLUTE):
                 self.joints_lower[dof_idx] = info[8]
