@@ -50,7 +50,7 @@ class XArm6Sim(object):
     self.bullet_client.loadURDF("sphere_small.urdf",np.array( [0.5, 0, 0.3])+self.offset, flags=flags)
     
     orn=[0,0,0,1]
-    self.xarm = self.bullet_client.loadURDF("xarm/xarm6_robot.urdf", np.array([0,0,0])+self.offset, orn, useFixedBase=True, flags=flags)
+    self.xarm = self.bullet_client.loadURDF("xarm/xarm6_robot_white.urdf", np.array([0,0,0])+self.offset, orn, useFixedBase=True, flags=flags)
     num_joints = p.getNumJoints(self.xarm)
     print("num_joints=",num_joints) # 7
     for i in range(num_joints):

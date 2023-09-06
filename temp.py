@@ -1,11 +1,12 @@
 import pyflex
 from env.flex_env import FlexEnv, FlexRobotHelper
 from utils import load_yaml
+import os
 
 # Granular env
-config = load_yaml("config/mpc/config.yaml")
-env = FlexEnv(config)
-env.reset()
+# config = load_yaml("config/mpc/config.yaml")
+# env = FlexEnv(config)
+# env.reset()
 
 # pyflex.loadURDF = FlexRobotHelper.loadURDF
 # pyflex.resetJointState = FlexRobotHelper.resetJointState

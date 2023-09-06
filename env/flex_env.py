@@ -85,8 +85,9 @@ class FlexRobotHelper:
         if self.robotId is None:
             self.robotId = p.loadURDF(fileName, basePosition, baseOrientation, useFixedBase = useFixedBase, globalScaling = globalScaling)
         p.resetBasePositionAndOrientation(self.robotId, basePosition, baseOrientation)
-        root_path = pybullet_data.getDataPath()
-        robot_path = os.path.join(root_path, fileName)
+        # root_path = pybullet_data.getDataPath()
+        # robot_path = os.path.join(root_path, fileName)
+        robot_path = fileName # change the urdf path
         robot_path_par = os.path.abspath(os.path.join(robot_path, os.pardir))
         with open(robot_path, 'r') as f:
             robot = f.read()
@@ -98,20 +99,26 @@ class FlexRobotHelper:
         # print('type', type(links[0])) # bs4.element.Tag
         # print('links', links, '\n') # <link name="panda_link0" ...
         
-        # paint the robot
+        # add the mesh to pyflex
         self.num_meshes = 0
         self.has_mesh = np.ones(len(links), dtype=bool)
+        
         for i in range(len(links)):
             link = links[i]
             if link.find_all('geometry'):
                 # print(link.find_all('geometry')) # <geometry> <mesh filename="meshes/collision/link0.obj"/> 
                 
                 mesh_name = link.find_all('geometry')[0].find_all('mesh')[0].get('filename')
-                # print(mesh_name)
+                # print('before', mesh_name)
                 
-                if mesh_name[-4:] == '.STL':
+                # transfer stl to obj
+                if mesh_name[-4:] == '.STL' or mesh_name[-4:] == '.stl':
                     mesh_name = mesh_name[:-4] + '.obj'
+                
+                # DEBUG
+                # print(robot_path_par, mesh_name)
                 pyflex.add_mesh(os.path.join(robot_path_par, mesh_name), globalScaling, 0, np.ones(3))
+                                
                 self.num_meshes += 1
             else:
                 self.has_mesh[i] = False
@@ -226,8 +233,8 @@ class FlexEnv(gym.Env):
         # define robot information
         self.flex_robot_helper = FlexRobotHelper()
         if self.robot_type == 'franka':
-            self.end_idx = 11 # 11
-            self.num_dofs = 9 # 9
+            self.end_idx = 11 
+            self.num_dofs = 9 
             self.left_finger_joint = 9
             self.right_finger_joint = 10
         elif self.robot_type == 'kinova':
@@ -263,6 +270,8 @@ class FlexEnv(gym.Env):
                         pyflex.resetJointState(self.flex_robot_helper, j, 0.)
                 elif self.robot_type == 'kinova':
                     pyflex.resetJointState(self.flex_robot_helper, j, jointPositions[index])
+                elif self.robot_type == 'xarm6':
+                    pyflex.resetJointState(self.flex_robot_helper, j, jointPositions[index]) #TODO
                 else:
                     raise NotImplementedError
                 index=index+1
@@ -285,6 +294,8 @@ class FlexEnv(gym.Env):
                 h = self.global_scale / 8.0
             elif self.robot_type == 'kinova':
                 h = 0.11 * self.global_scale
+            elif self.robot_type == 'xarm6':
+                h = 0.11 * self.global_scale #TODO
             else:
                 raise NotImplementedError
             s_2d = np.concatenate([action[:2], [h]])
@@ -304,6 +315,8 @@ class FlexEnv(gym.Env):
             orn = np.array([0.0, np.pi, pusher_angle+np.pi/2]) #?
         elif self.robot_type == 'kinova':
             orn = np.array([0.0, np.pi, pusher_angle])
+        elif self.robot_type == 'xarm6':
+            orn = np.array([0.0, np.pi, pusher_angle]) #TODO
         # halfEdge = np.array([0.05, 1.0, 0.4])
         # quat = quatFromAxisAngle(
         #     axis=np.array([0., 1., 0.]),
@@ -903,6 +916,9 @@ class FlexEnv(gym.Env):
         elif self.robot_type == 'kinova':
             self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'kinova/urdf/GEN3_URDF_V12.urdf', [-0.5 * self.global_scale, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale)
             self.rest_joints = [0., np.pi/6., np.pi, -np.pi/2., 0., -np.pi/3., -np.pi/4]
+        elif self.robot_type == 'xarm6':
+            self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'xarm/xarm6_robot_white.urdf', [-0.5 * self.global_scale / 8.0, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale) #TODO
+            self.rest_joints = [np.pi/6., np.pi, -np.pi/2., 0., -np.pi/3., -np.pi/4] #TODO ?
         else:
             raise NotImplementedError
         
@@ -916,7 +932,7 @@ class FlexEnv(gym.Env):
         dof_idx = 0
         for i in range(self.num_joints):
             info = p.getJointInfo(self.robotId, i)
-            print(f"Joint {i}:", info)
+            # print(f"Joint {i}:", info)
             jointType = info[2]
             if (jointType == p.JOINT_PRISMATIC or jointType == p.JOINT_REVOLUTE):
                 self.joints_lower[dof_idx] = info[8]

@@ -12,7 +12,7 @@ dataset:
   wkspc_w: 5.0 # 2.5 (coffee, ball); 5.0 (carrots, capsule)
   headless: False
   cont_motion: False # whether the robot action is continuous
-  robot_type: 'franka' # kinova; franka; xarm6
+  robot_type: 'xarm6' # kinova; franka; xarm6
 
 mpc:
   sigma: 0.3
