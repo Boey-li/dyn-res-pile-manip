@@ -1,5 +1,5 @@
 dataset:
-  init_pos: 'rand_sparse_spread'
+  init_pos: 'rand_spread'
   # initialization options:
   # - 'rand_blob': random blob-shape object pile
   # - 'rand_spread': random spreaded object pile

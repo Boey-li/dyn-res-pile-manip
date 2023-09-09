@@ -6,6 +6,8 @@ import time
 import numpy as np
 import math
 import pybullet as p
+import pybullet_data
+import os
 
 useNullSpace = 0
 useDynamics = 1
@@ -16,6 +18,8 @@ if useIKFast:
 ikSolver = 0
 xarmEndEffectorIndex = 6
 xarmNumDofs = 6
+# xarmEndEffectorIndex = 11
+# xarmNumDofs = 9
 
 ll = [-17]*xarmNumDofs
 #upper limits for null space (todo: set them to proper range)
@@ -23,7 +27,9 @@ ul = [17]*xarmNumDofs
 #joint ranges for null space (todo: set them to proper range)
 jr = [17]*xarmNumDofs
 #restposes for null space
-jointPositions=[0,0,0,0,0,0]
+# jointPositions=[0,0,0,0,0,0]
+# jointPositions=[0,0,0,0,0,0,0,0,0]
+jointPositions=np.zeros(13)
 rp = jointPositions
 jointPoses = jointPositions
 
@@ -49,10 +55,17 @@ class XArm6Sim(object):
     self.bullet_client.loadURDF("sphere_small.urdf",np.array( [0.3, 0, 0.3])+self.offset, flags=flags)
     self.bullet_client.loadURDF("sphere_small.urdf",np.array( [0.5, 0, 0.3])+self.offset, flags=flags)
     
+    root_path = pybullet_data.getDataPath()
+    robot_path = os.path.join(root_path, 'xarm/xarm6_with_gripper.urdf')
     orn=[0,0,0,1]
-    self.xarm = self.bullet_client.loadURDF("xarm/xarm6_robot_white.urdf", np.array([0,0,0])+self.offset, orn, useFixedBase=True, flags=flags)
+    
+    # custom xarm6
+    self.xarm = self.bullet_client.loadURDF('xarm/xarm6_with_gripper.urdf', np.array([0,0,0])+self.offset, orn, useFixedBase=True, flags=flags)
+    # from pybullet_data
+    # self.xarm = self.bullet_client.loadURDF(robot_path, np.array([0,0,0])+self.offset, orn, useFixedBase=True, flags=flags)
+    
     num_joints = p.getNumJoints(self.xarm)
-    print("num_joints=",num_joints) # 7
+    print("num_joints=",num_joints) # xarm6: 14, xarm6_with_gripper: 14
     for i in range(num_joints):
         print(f"joint {i} info:", p.getJointInfo(self.xarm, i))
     

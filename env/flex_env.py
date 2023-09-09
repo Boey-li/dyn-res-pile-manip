@@ -87,7 +87,8 @@ class FlexRobotHelper:
         p.resetBasePositionAndOrientation(self.robotId, basePosition, baseOrientation)
         # root_path = pybullet_data.getDataPath()
         # robot_path = os.path.join(root_path, fileName)
-        robot_path = fileName # change the urdf path
+        
+        robot_path = fileName # changed the urdf file
         robot_path_par = os.path.abspath(os.path.join(robot_path, os.pardir))
         with open(robot_path, 'r') as f:
             robot = f.read()
@@ -242,7 +243,7 @@ class FlexEnv(gym.Env):
             self.num_dofs = 7
         elif self.robot_type == 'xarm6':
             self.end_idx = 6
-            self.num_dofs = 6
+            self.num_dofs = 6 # 6
 
         # define action space
         self.act_dim = 4
@@ -271,7 +272,7 @@ class FlexEnv(gym.Env):
                 elif self.robot_type == 'kinova':
                     pyflex.resetJointState(self.flex_robot_helper, j, jointPositions[index])
                 elif self.robot_type == 'xarm6':
-                    pyflex.resetJointState(self.flex_robot_helper, j, jointPositions[index]) #TODO
+                    pyflex.resetJointState(self.flex_robot_helper, j, jointPositions[index])
                 else:
                     raise NotImplementedError
                 index=index+1
@@ -295,7 +296,7 @@ class FlexEnv(gym.Env):
             elif self.robot_type == 'kinova':
                 h = 0.11 * self.global_scale
             elif self.robot_type == 'xarm6':
-                h = 0.11 * self.global_scale #TODO
+                h = self.global_scale / 8.0  #TODO
             else:
                 raise NotImplementedError
             s_2d = np.concatenate([action[:2], [h]])
@@ -316,7 +317,7 @@ class FlexEnv(gym.Env):
         elif self.robot_type == 'kinova':
             orn = np.array([0.0, np.pi, pusher_angle])
         elif self.robot_type == 'xarm6':
-            orn = np.array([0.0, np.pi, pusher_angle]) #TODO
+            orn = np.array([0.0, np.pi, pusher_angle + np.pi/2])
         # halfEdge = np.array([0.05, 1.0, 0.4])
         # quat = quatFromAxisAngle(
         #     axis=np.array([0., 1., 0.]),
@@ -911,14 +912,14 @@ class FlexEnv(gym.Env):
         # add robot
         if self.robot_type == 'franka':
             self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'franka_panda/panda.urdf', [-4.5 * self.global_scale / 8.0, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale)
-            # self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'xarm/xarm6_robot.urdf', [-4.5 * self.global_scale / 8.0, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale)
             self.rest_joints = [np.pi*5/8, -np.pi/2, -np.pi/2, -np.pi*5/8, -np.pi/4, np.pi/2, np.pi/4, 0., 0.]            
         elif self.robot_type == 'kinova':
             self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'kinova/urdf/GEN3_URDF_V12.urdf', [-0.5 * self.global_scale, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale)
             self.rest_joints = [0., np.pi/6., np.pi, -np.pi/2., 0., -np.pi/3., -np.pi/4]
         elif self.robot_type == 'xarm6':
-            self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'xarm/xarm6_robot_white.urdf', [-0.5 * self.global_scale / 8.0, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale) #TODO
-            self.rest_joints = [np.pi/6., np.pi, -np.pi/2., 0., -np.pi/3., -np.pi/4] #TODO ?
+            self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'xarm/xarm6_with_gripper.urdf', [-4.5 * self.global_scale / 8.0, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale) #TODO
+            # self.rest_joints = [0, 0, 0, 0, 0, 0] #TODO ?
+            self.rest_joints = np.zeros(8)
         else:
             raise NotImplementedError
         
