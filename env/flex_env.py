@@ -859,6 +859,7 @@ class FlexEnv(gym.Env):
                                           add_sing_z,
                                           add_noise,])
             pyflex.set_scene(22, self.scene_params, 0)
+            # pyflex.set_scene(62, self.scene_params, 0)
         elif self.obj == 'coffee_capsule':
             cof_scale = 0.2 * self.global_scale / 8.0
             cof_x = -1.5 * self.global_scale / 8.0
@@ -879,6 +880,24 @@ class FlexEnv(gym.Env):
                 cof_scale, cof_x, cof_y, cof_z, staticFriction, dynamicFriction, draw_skin, num_coffee,
                 cap_scale, cap_x, cap_y, cap_z, num_capsule, cap_slices, cap_segments])
             pyflex.set_scene(23, self.scene_params, 0)
+        # custom scene
+        elif self.obj == 'box':
+            n_instance = 3
+            low_bound = 0.09
+            scene_params = np.zeros(n_instance * 3 + 1)
+            scene_params[0] = n_instance
+            for i in range(n_instance):
+                x = rand_float(0., 0.1)
+                y = rand_float(low_bound, low_bound + 0.01)
+                z = rand_float(0., 0.1)
+                
+                scene_params[3*i+1] = x
+                scene_params[3*i+2] = y
+                scene_params[3*i+3] = z
+                
+                low_bound += 0.21
+            pyflex.set_scene(3, scene_params, 0)
+        
         else:
             raise ValueError('obj not defined')
 

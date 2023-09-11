@@ -29,9 +29,7 @@ namespace py = pybind11;
 #include "core/cloth.h"
 
 #include "external/SDL2-2.0.4/include/SDL.h"
-#include "external/glad/include/glad/glad.h" //add
 
-#include "bindings/opengl/shader.h" //add
 #include "shaders.h"
 #include "imgui.h"
 #include "shadersDemoContext.h"
@@ -88,9 +86,9 @@ SDL_GameController* g_gamecontroller = nullptr;
 
 using namespace std;
 
-int g_screenWidth = 720;
+int g_screenWidth = 960;
 int g_screenHeight = 720;
-int g_msaaSamples = 0;
+int g_msaaSamples = 8;
 
 int g_numSubsteps;
 
@@ -98,9 +96,6 @@ int g_numSubsteps;
 int g_device = -1;
 char g_deviceName[256];
 bool g_vsync = true;
-
-// these two are migrated from Flex 2.0
-bool g_headless = true; //add
 
 bool g_benchmark = false;
 bool g_extensions = true;
@@ -145,8 +140,7 @@ std::map<NvFlexDistanceFieldId, GpuMesh*> g_fields;
 bool g_shapesChanged = false;
 
 /* Note that this array of colors is altered by demo code, and is also read from global by graphics API impls */
-// add 2000 for g_colors
-Colour g_colors[2000] = {
+Colour g_colors[] = {
     Colour(0.000f, 0.349f, 0.173f),
     Colour(0.875f, 0.782f, 0.051f),
     Colour(0.000f, 0.170f, 0.453f),
@@ -404,9 +398,8 @@ float g_camNear;
 float g_camFar;
 
 Vec3 g_lightPos;
-Vec3 g_lightDir = Normalize(Vec3(5.0f, 15.0f, 7.5f)); //add
+Vec3 g_lightDir;
 Vec3 g_lightTarget;
-float g_lightFov; //add
 
 bool g_pause = false;
 bool g_step = false;
@@ -454,7 +447,6 @@ bool g_drawRopes;
 float g_pointScale;
 float g_ropeScale;
 float g_drawPlaneBias;    // move planes along their normal for rendering
-float g_floorScaleSize; //add
 
 float g_diffuseScale;
 float g_diffuseMotionScale;
@@ -505,9 +497,6 @@ float g_fogDistance;
 
 FILE* g_ffmpeg;
 
-// mask for whether show a specific shape (add)
-int g_hideShapes[1000] = {0};
-vector<Vec3> g_shapeColors;
 void DrawShapes();
 
 class Scene;
@@ -539,7 +528,6 @@ inline float sqr(float x) { return x*x; }
 #include "scenes.h"
 #include "benchmark.h"
 
-void InitRenderHeadless(const RenderInitOptions& options, int width, int height); //add
 
 void Init(int scene, py::array_t<float> scene_params, bool centerCamera = true, int thread_idx = 0) {
     RandInit();
@@ -656,7 +644,6 @@ void Init(int scene, py::array_t<float> scene_params, bool centerCamera = true, 
     g_pointScale = 1.0f;
     g_ropeScale = 1.0f;
     g_drawPlaneBias = 0.0f;
-    g_floorScaleSize = 200.0f; //add
 
     // sim params
     g_params.gravity[0] = 0.0f;
@@ -1181,8 +1168,7 @@ void UpdateScene(py::array_t<float> update_params) {
     g_scenes[g_scene]->Update(update_params);
 }
 
-// add input for RenderScene 
-void RenderScene(int draw_planes, int draw_objects, int draw_shadow) {
+void RenderScene() {
     const int numParticles = NvFlexGetActiveCount(g_solver);
     const int numDiffuse = g_buffers->diffuseCount[0];
 
@@ -1259,12 +1245,12 @@ void RenderScene(int draw_planes, int draw_objects, int draw_shadow) {
     Vec3 sceneExtents = g_sceneUpper - g_sceneLower;
     Vec3 sceneCenter = 0.5f*(g_sceneUpper + g_sceneLower);
 
+    g_lightDir = Normalize(Vec3(5.0f, 15.0f, 7.5f));
     g_lightPos = sceneCenter + g_lightDir*Length(sceneExtents)*g_lightDistance;
     g_lightTarget = sceneCenter;
 
     // calculate tight bounds for shadow frustum
-    // float lightFov = 2.0f*atanf(Length(g_sceneUpper - sceneCenter) / Length(g_lightPos - sceneCenter));
-    float lightFov = g_lightFov; //add
+    float lightFov = 2.0f*atanf(Length(g_sceneUpper - sceneCenter) / Length(g_lightPos - sceneCenter));
 
     // scale and clamp fov for aesthetics
     lightFov = Clamp(lightFov, DegToRad(25.0f), DegToRad(65.0f));
@@ -1278,6 +1264,7 @@ void RenderScene(int draw_planes, int draw_objects, int draw_shadow) {
 
     //-------------------------------------
     // shadowing pass
+
     if (g_meshSkinIndices.size())
         SkinMesh();
 
@@ -1287,49 +1274,43 @@ void RenderScene(int draw_planes, int draw_objects, int draw_shadow) {
     SetView(lightView, lightPerspective);
     SetCullMode(false);
 
-    if (draw_shadow) {
-                
-        // give scene a chance to do custom drawing
-        if (draw_objects)
-            g_scenes[g_scene]->Draw(1);
+    // give scene a chance to do custom drawing
+    g_scenes[g_scene]->Draw(1);
 
-        if (draw_objects && g_drawMesh)
-            DrawMesh(g_mesh, g_meshColor);
+    if (g_drawMesh)
+        DrawMesh(g_mesh, g_meshColor);
 
-        if (draw_objects)
-            DrawShapes();
+    DrawShapes();
 
-        if (draw_objects && g_drawCloth && g_buffers->triangles.size()) {
-            DrawCloth(&g_buffers->positions[0], &g_buffers->normals[0], g_buffers->uvs.size() ? &g_buffers->uvs[0].x : NULL, &g_buffers->triangles[0], g_buffers->triangles.size() / 3, g_buffers->positions.size(), 3, g_expandCloth);
-        }
-
-        if (draw_objects && g_drawRopes) {
-            for (size_t i = 0; i < g_ropes.size(); ++i)
-                DrawRope(&g_buffers->positions[0], &g_ropes[i].mIndices[0], g_ropes[i].mIndices.size(), radius*g_ropeScale, i);
-        }
-
-        int shadowParticles = numParticles;
-        int shadowParticlesOffset = 0;
-
-        if (!g_drawPoints) {
-            shadowParticles = 0;
-
-            if (g_drawEllipsoids) {
-                shadowParticles = numParticles - g_numSolidParticles;
-                shadowParticlesOffset = g_numSolidParticles;
-            }
-        }
-        else {
-            int offset = g_drawMesh ? g_numSolidParticles : 0;
-
-            shadowParticles = numParticles - offset;
-            shadowParticlesOffset = offset;
-        }
-
-        if (draw_objects && g_buffers->activeIndices.size())
-            DrawPoints(g_fluidRenderBuffers, shadowParticles, shadowParticlesOffset, radius, 2048, 1.0f, lightFov, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_drawDensity);
-
+    if (g_drawCloth && g_buffers->triangles.size()) {
+        DrawCloth(&g_buffers->positions[0], &g_buffers->normals[0], g_buffers->uvs.size() ? &g_buffers->uvs[0].x : NULL, &g_buffers->triangles[0], g_buffers->triangles.size() / 3, g_buffers->positions.size(), 3, g_expandCloth);
     }
+
+    if (g_drawRopes) {
+        for (size_t i = 0; i < g_ropes.size(); ++i)
+            DrawRope(&g_buffers->positions[0], &g_ropes[i].mIndices[0], g_ropes[i].mIndices.size(), radius*g_ropeScale, i);
+    }
+
+    int shadowParticles = numParticles;
+    int shadowParticlesOffset = 0;
+
+    if (!g_drawPoints) {
+        shadowParticles = 0;
+
+        if (g_drawEllipsoids) {
+            shadowParticles = numParticles - g_numSolidParticles;
+            shadowParticlesOffset = g_numSolidParticles;
+        }
+    }
+    else {
+        int offset = g_drawMesh ? g_numSolidParticles : 0;
+
+        shadowParticles = numParticles - offset;
+        shadowParticlesOffset = offset;
+    }
+
+    if (g_buffers->activeIndices.size())
+        DrawPoints(g_fluidRenderBuffers, shadowParticles, shadowParticlesOffset, radius, 2048, 1.0f, lightFov, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_drawDensity);
 
     ShadowEnd();
 
@@ -1346,59 +1327,50 @@ void RenderScene(int draw_planes, int draw_objects, int draw_shadow) {
     int passes = g_increaseGfxLoadForAsyncComputeTesting ? 50 : 1;
 
     for (int i = 0; i != passes; i++) {
-        if (draw_planes)
-            DrawPlanes(
-                (Vec4*)g_params.planes,
-                g_params.numPlanes,
-                g_drawPlaneBias,
-                g_floorScaleSize);
+        DrawPlanes((Vec4*)g_params.planes, g_params.numPlanes, g_drawPlaneBias);
 
-        if (draw_objects && g_drawMesh)
+        if (g_drawMesh)
             DrawMesh(g_mesh, g_meshColor);
 
 
-        if (draw_objects)
-            DrawShapes();
+        DrawShapes();
 
-        if (draw_objects && g_drawCloth && g_buffers->triangles.size())
+        if (g_drawCloth && g_buffers->triangles.size())
             DrawCloth(&g_buffers->positions[0], &g_buffers->normals[0], g_buffers->uvs.size() ? &g_buffers->uvs[0].x : nullptr, &g_buffers->triangles[0], g_buffers->triangles.size() / 3, g_buffers->positions.size(), 3, g_expandCloth);
 
-        if (draw_objects && g_drawRopes) {
+        if (g_drawRopes) {
             for (size_t i = 0; i < g_ropes.size(); ++i)
                 DrawRope(&g_buffers->positions[0], &g_ropes[i].mIndices[0], g_ropes[i].mIndices.size(), g_params.radius*0.5f*g_ropeScale, i);
         }
 
         // give scene a chance to do custom drawing
-        if (draw_objects)
-            g_scenes[g_scene]->Draw(0);
+        g_scenes[g_scene]->Draw(0);
     }
     UnbindSolidShader();
 
     // first pass of diffuse particles (behind fluid surface)
-    if (draw_objects && g_drawDiffuse)
+    if (g_drawDiffuse)
         RenderDiffuse(g_fluidRenderer, g_diffuseRenderBuffers, numDiffuse, radius*g_diffuseScale, float(g_screenWidth), aspect, fov, g_diffuseColor, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_diffuseMotionScale, g_diffuseInscatter, g_diffuseOutscatter, g_diffuseShadow, false);
 
-    if (draw_objects) {
-        if (g_drawEllipsoids) {
-            // draw solid particles separately
-            if (g_numSolidParticles && g_drawPoints)
-                DrawPoints(g_fluidRenderBuffers, g_numSolidParticles, 0, radius, float(g_screenWidth), aspect, fov, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_drawDensity);
+    if (g_drawEllipsoids) {
+        // draw solid particles separately
+        if (g_numSolidParticles && g_drawPoints)
+            DrawPoints(g_fluidRenderBuffers, g_numSolidParticles, 0, radius, float(g_screenWidth), aspect, fov, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_drawDensity);
 
-            // render fluid surface
-            RenderEllipsoids(g_fluidRenderer, g_fluidRenderBuffers, numParticles - g_numSolidParticles, g_numSolidParticles, radius, float(g_screenWidth), aspect, fov, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_fluidColor, g_blur, g_ior, g_drawOpaque);
+        // render fluid surface
+        RenderEllipsoids(g_fluidRenderer, g_fluidRenderBuffers, numParticles - g_numSolidParticles, g_numSolidParticles, radius, float(g_screenWidth), aspect, fov, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_fluidColor, g_blur, g_ior, g_drawOpaque);
 
-            // second pass of diffuse particles for particles in front of fluid surface
-            if (g_drawDiffuse)
-                RenderDiffuse(g_fluidRenderer, g_diffuseRenderBuffers, numDiffuse, radius*g_diffuseScale, float(g_screenWidth), aspect, fov, g_diffuseColor, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_diffuseMotionScale, g_diffuseInscatter, g_diffuseOutscatter, g_diffuseShadow, true);
-        }
-        else {
-            // draw all particles as spheres
-            if (g_drawPoints) {
-                int offset = g_drawMesh ? g_numSolidParticles : 0;
+        // second pass of diffuse particles for particles in front of fluid surface
+        if (g_drawDiffuse)
+            RenderDiffuse(g_fluidRenderer, g_diffuseRenderBuffers, numDiffuse, radius*g_diffuseScale, float(g_screenWidth), aspect, fov, g_diffuseColor, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_diffuseMotionScale, g_diffuseInscatter, g_diffuseOutscatter, g_diffuseShadow, true);
+    }
+    else {
+        // draw all particles as spheres
+        if (g_drawPoints) {
+            int offset = g_drawMesh ? g_numSolidParticles : 0;
 
-                if (g_buffers->activeIndices.size())
-                    DrawPoints(g_fluidRenderBuffers, numParticles - offset, offset, radius, float(g_screenWidth), aspect, fov, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_drawDensity);
-            }
+            if (g_buffers->activeIndices.size())
+                DrawPoints(g_fluidRenderBuffers, numParticles - offset, offset, radius, float(g_screenWidth), aspect, fov, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_drawDensity);
         }
     }
 
@@ -1527,24 +1499,17 @@ void RenderDebug() {
 void DrawShapes() {
     for (int i = 0; i < g_buffers->shapeFlags.size(); ++i) {
 
-        if (g_hideShapes[i] == 1) {
-            continue;
-        }
-
         const int flags = g_buffers->shapeFlags[i];
 
         // unpack flags
         auto type = int(flags & eNvFlexShapeFlagTypeMask);
         //bool dynamic = int(flags&eNvFlexShapeFlagDynamic) > 0;
 
-        // Vec3 color = Vec3(0.9f);
-        Vec3 color = g_shapeColors[i];
+        Vec3 color = Vec3(0.9f);
 
         if (flags & eNvFlexShapeFlagTrigger) {
             color = Vec3(0.6f, 1.0, 0.6f);
             SetFillMode(true);
-
-            printf("hahahah\n");
         }
 
         // render with prev positions to match particle update order
@@ -1645,7 +1610,7 @@ int DoUI() {
 
         int fontHeight = 13;
 
-        if (0) {
+        if (g_profile) {
             DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Frame: %d", g_frame); y -= fontHeight * 2;
 
             if (!g_ffmpeg) {
@@ -1856,7 +1821,7 @@ int DoUI() {
     return newScene;
 }
 
-void UpdateFrame(py::array_t<float> update_params, int draw_planes, int draw_objects, int draw_shadow) {
+void UpdateFrame(py::array_t<float> update_params) {
     static double lastTime;
 
     // real elapsed frame time
@@ -1981,7 +1946,7 @@ void UpdateFrame(py::array_t<float> update_params, int draw_planes, int draw_obj
     StartFrame(Vec4(g_clearColor, 1.0f));
 
     // main scene render
-    RenderScene(draw_planes, draw_objects, draw_shadow);
+    RenderScene();
     RenderDebug();
 
     int newScene = DoUI();
@@ -2001,6 +1966,20 @@ void UpdateFrame(py::array_t<float> update_params, int draw_planes, int draw_obj
         GetViewRay(g_lastx, g_screenHeight - g_lasty, origin, dir);
 
         g_mousePos = origin + dir*g_mouseT;
+    }
+
+    if (g_capture) {
+        TgaImage img;
+        img.m_width = g_screenWidth;
+        img.m_height = g_screenHeight;
+        img.m_data = new uint32_t[g_screenWidth*g_screenHeight];
+
+        ReadFrame((int*)img.m_data, g_screenWidth, g_screenHeight);
+        TgaSave(g_ffmpeg, img, false);
+
+        // fwrite(img.m_data, sizeof(uint32_t)*g_screenWidth*g_screenHeight, 1, g_ffmpeg);
+
+        delete[] img.m_data;
     }
 
     double renderEndTime = GetSeconds();
@@ -2327,7 +2306,7 @@ void InputKeyboardUp(unsigned char key, int x, int y) {
 }
 
 void MouseFunc(int b, int state, int x, int y) {
-    switch (state) {
+	switch (state) {
         case SDL_RELEASED: {
             g_lastx = x;
             g_lasty = y;
@@ -2407,29 +2386,29 @@ void ControllerButtonEvent(SDL_ControllerButtonEvent event) {
 }
 
 void ControllerDeviceUpdate() {
-    if (SDL_NumJoysticks() > 0) {
-        SDL_JoystickEventState(SDL_ENABLE);
-        if (SDL_IsGameController(0)) {
-            g_gamecontroller = SDL_GameControllerOpen(0);
-        }
-    }
+	if (SDL_NumJoysticks() > 0) {
+		SDL_JoystickEventState(SDL_ENABLE);
+		if (SDL_IsGameController(0)) {
+			g_gamecontroller = SDL_GameControllerOpen(0);
+		}
+	}
 }
 
 void SDLInit(const char* title) {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0) // Initialize SDL's Video subsystem and game controllers
-        printf("Unable to initialize SDL");
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)	// Initialize SDL's Video subsystem and game controllers
+		printf("Unable to initialize SDL");
 
-    unsigned int flags = SDL_WINDOW_RESIZABLE;
+	unsigned int flags = SDL_WINDOW_RESIZABLE;
 
-    if (g_graphics == 0) {
-        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
-    }
+	if (g_graphics == 0) {
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+		flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
+	}
 
-    g_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        g_screenWidth, g_screenHeight, flags);
+	g_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+		g_screenWidth, g_screenHeight, flags);
 
-    g_windowId = SDL_GetWindowID(g_window);
+	g_windowId = SDL_GetWindowID(g_window);
 }
 
 char octopus_path[100];
@@ -2449,13 +2428,7 @@ char* make_path(char* full_path, std::string path) {
     return full_path;
 }
 
-void pyflex_init(bool headless=false) {
-    //add
-    g_headless = headless;
-    if (g_headless) {
-        g_interop = false;
-        g_pause = false;
-    }
+void pyflex_init() {
 
     // Customized scenes
     g_scenes.push_back(new yz_BunnyBath("Bunny Bath", true));
@@ -2470,35 +2443,6 @@ void pyflex_init(bool headless=false) {
     g_scenes.push_back(new yz_FluidShake("Fluid Shake"));
     g_scenes.push_back(new yz_BoxBathExt("Box Bath Extension", true));
     g_scenes.push_back(new yz_FluidIceShake("Fluid Ice Shake"));
-
-    g_scenes.push_back(new yz_MassRope("Mass Rope"));
-    g_scenes.push_back(new yz_FlagCloth("Flag Cloth"));
-
-    g_scenes.push_back(new yz_SoftRod("Soft Rod"));
-
-    g_scenes.push_back(new yz_ClothRigid("Cloth Rigid"));
-
-    g_scenes.push_back(new yz_Granular("Granular"));
-
-    g_scenes.push_back(new yz_BunnyGrip("BunnyGrip"));
-
-    g_scenes.push_back(new yz_ClothManip("ClothManip"));
-
-    g_scenes.push_back(new yz_SoftFall("SoftFall"));
-
-    g_scenes.push_back(new yz_FluidPour("FluidPour"));
-
-    g_scenes.push_back(new yz_GranularManip("GranularManip"));
-
-    g_scenes.push_back(new yz_FluidAndBox("FluidAndBox"));
-
-    g_scenes.push_back(new yx_Coffee("Coffee"));
-
-    g_scenes.push_back(new yx_Capsule("Capsule"));
-
-    g_scenes.push_back(new yx_Carrots("Carrots"));
-
-    g_scenes.push_back(new yx_Coffee_Capsule("Coffee_Capsule"));
 
     /*
     // opening scene
@@ -2765,28 +2709,20 @@ void pyflex_init(bool headless=false) {
     }
     const char *title = str.c_str();
 
-    if (!g_headless) {
-        SDLInit(title);
+    SDLInit(title);
 
-        // init graphics
-        options.window = g_window;
-        options.numMsaaSamples = g_msaaSamples;
-        options.asyncComputeBenchmark = g_asyncComputeBenchmark;
-        options.defaultFontHeight = -1;
-        options.fullscreen = g_fullscreen;
+    options.window = g_window;
+    options.numMsaaSamples = g_msaaSamples;
+    options.asyncComputeBenchmark = g_asyncComputeBenchmark;
+    options.defaultFontHeight = -1;
+    options.fullscreen = g_fullscreen;
 
-        InitRender(options);
+    InitRender(options);
 
-        if (g_fullscreen)
-            SDL_SetWindowFullscreen(g_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    if (g_fullscreen)
+        SDL_SetWindowFullscreen(g_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 
-        ReshapeWindow(g_screenWidth, g_screenHeight);
-    } else {
-		options.numMsaaSamples = g_msaaSamples;
-
-		InitRenderHeadless(options, g_screenWidth, g_screenHeight);
-        g_fluidRenderer = CreateFluidRenderer(g_screenWidth, g_screenHeight);
-    }
+    ReshapeWindow(g_screenWidth, g_screenHeight);
 
     NvFlexInitDesc desc;
     desc.deviceIndex = g_device;
@@ -2832,12 +2768,10 @@ void pyflex_clean() {
     ShadowDestroy(g_shadowMap);
 
     Shutdown();
-    if (!g_headless) {
-        DestroyRender();
+    DestroyRender();
 
-        SDL_DestroyWindow(g_window);
-        SDL_Quit();
-    }
+    SDL_DestroyWindow(g_window);
+    SDL_Quit();
 }
 
 int main() {
@@ -2900,12 +2834,20 @@ void SDL_EventFunc() {
     }
 }
 
-void pyflex_step(
-        py::array_t<float> update_params,
-        int draw_planes, int draw_objects, int draw_shadow, bool render_depth) {
+void pyflex_step(py::array_t<float> update_params, int capture, char *path) {
+    if (capture == 1) {
+        g_capture = true;
+        g_ffmpeg = fopen(path, "wb");
+    }
 
-    UpdateFrame(update_params, draw_planes, draw_objects, draw_shadow);
+    UpdateFrame(update_params);
     SDL_EventFunc();
+
+    if (capture == 1) {
+        g_capture = false;
+        fclose(g_ffmpeg);
+        g_ffmpeg = nullptr;
+    }
 }
 
 float rand_float(float LO, float HI) {
@@ -2936,10 +2878,7 @@ void pyflex_UnmapShapeBuffers(SimBuffers* buffers) {
     buffers->shapeFlags.unmap();
 }
 
-void pyflex_add_box(
-        py::array_t<float> halfEdge_, py::array_t<float> center_, py::array_t<float> quat_,
-        float hideShape, py::array_t<float> color) {
-
+void pyflex_add_box(py::array_t<float> halfEdge_, py::array_t<float> center_, py::array_t<float> quat_) {
     pyflex_MapShapeBuffers(g_buffers);
 
     auto ptr_halfEdge = (float *) halfEdge_.request().ptr;
@@ -2954,49 +2893,6 @@ void pyflex_add_box(
     AddBox(halfEdge, center, quat);
 
     pyflex_UnmapShapeBuffers(g_buffers);
-
-    // record hideShape
-    g_hideShapes[g_buffers->shapeFlags.size() - 1] = (int)hideShape;
-
-    // record shape color
-    auto ptr = (float *) color.request().ptr;
-    g_shapeColors.push_back(Vec3(ptr[0], ptr[1], ptr[2]));
-}
-
-void pyflex_add_capsule(py::array_t<float> params, py::array_t<float> lower_pos, py::array_t<float> quat_) {
-    pyflex_MapShapeBuffers(g_buffers);
-
-    auto ptr_params = (float *) params.request().ptr;
-    float capsule_radius = ptr_params[0];
-    float halfheight = ptr_params[1];
-
-    auto ptr_lower_pos = (float *) lower_pos.request().ptr;
-    Vec3 lower_position = Vec3(ptr_lower_pos[0], ptr_lower_pos[1], ptr_lower_pos[2]);
-
-    auto ptr_quat = (float *) quat_.request().ptr;
-    Quat quat = Quat(ptr_quat[0], ptr_quat[1], ptr_quat[2], ptr_quat[3]);
-
-    AddCapsule(capsule_radius, halfheight, lower_position, quat);
-
-    pyflex_UnmapShapeBuffers(g_buffers);
-}
-
-void pyflex_add_mesh(const char *s, float scaling, int hideShape, py::array_t<float> color) {
-    Mesh* m = ImportMesh(s);
-    m->Transform(ScaleMatrix(Vec3(scaling)));
-
-    NvFlexTriangleMeshId mesh = CreateTriangleMesh(m);
-
-    pyflex_MapShapeBuffers(g_buffers);
-    AddTriangleMesh(mesh, Vec3(), Quat(), 1.0f);
-    pyflex_UnmapShapeBuffers(g_buffers);
-
-    // record hideShape
-    g_hideShapes[g_buffers->shapeFlags.size() - 1] = (int)hideShape;
-
-    // record shape color
-    auto ptr = (float *) color.request().ptr;
-    g_shapeColors.push_back(Vec3(ptr[0], ptr[1], ptr[2]));
 }
 
 int pyflex_get_n_particles() {
@@ -3329,63 +3225,6 @@ py::array_t<int> pyflex_get_phases() {
     return phases;
 }
 
-void pyflex_set_phases(py::array_t<int> phases) {
-    g_buffers->phases.map();
-
-    auto buf = phases.request();
-    auto ptr = (int *) buf.ptr;
-
-    for (size_t i = 0; i < (size_t) g_buffers->phases.size(); i++) {
-        g_buffers->phases[i] = ptr[i];
-    }
-
-    g_buffers->phases.unmap();
-    NvFlexSetPhases(g_solver, g_buffers->phases.buffer, nullptr);
-}
-
-void pyflex_print_g_colors() {
-    for (int i = 0; i < 63*3; i+=64) {
-        std::cout << "g_colors " << i << ": " << g_colors[i][0] << " " << g_colors[i][1] << " " << g_colors[i][2] << std::endl;
-    }
-}
-
-void pyflex_set_color(py::array_t<float> color) {
-    auto buf = color.request();
-    auto ptr = (float *) buf.ptr;
-    g_colors[(int)ptr[0]] = Colour(ptr[1], ptr[2], ptr[3]);
-}
-
-void pyflex_set_colors(int n_particles, py::array_t<float> colors) {
-    auto buf = colors.request();
-    auto ptr = (float *) buf.ptr;
-
-    for (int i = 0; i < n_particles; i++) {
-        g_colors[i] = Colour((float)ptr[i*3], (float)ptr[i*3+1], (float)ptr[i*3+2]);
-    }
-}
-
-void pyflex_set_fluid_color(py::array_t<float> color) {
-    auto buf = color.request();
-    auto ptr = (float *) buf.ptr;
-    g_fluidColor = Vec4(ptr[0], ptr[1], ptr[2], ptr[3]);
-}
-
-void pyflex_reset_colors() {
-    Colour colors[] = {
-        Colour(0.000f, 0.349f, 0.173f),
-        Colour(0.875f, 0.782f, 0.051f),
-        Colour(0.000f, 0.170f, 0.453f),
-        Colour(0.673f, 0.111f, 0.000f),
-        Colour(0.612f, 0.194f, 0.394f),
-        Colour(0.0f, 0.5f, 1.0f),
-        Colour(0.797f, 0.354f, 0.000f),
-        Colour(0.092f, 0.465f, 0.820f)
-    };
-    for (int i = 0; i < 8; i++) {
-        g_colors[i] = colors[i];
-    }
-}
-
 py::array_t<float> pyflex_get_sceneParams() {
     if (g_scene == 5) {
         auto params = py::array_t<float>(3);
@@ -3420,13 +3259,6 @@ py::array_t<float> pyflex_get_sceneUpper() {
     return scene_upper;
 }
 
-void pyflex_set_sceneUpper(py::array_t<float> sceneUpper) {
-    auto buf = sceneUpper.request();
-    auto ptr = (float *) buf.ptr;
-
-    g_sceneUpper = Vec3(ptr[0], ptr[1], ptr[2]);
-}
-
 py::array_t<float> pyflex_get_sceneLower() {
     auto scene_lower = py::array_t<float>(3);
     auto buf = scene_lower.request();
@@ -3439,149 +3271,11 @@ py::array_t<float> pyflex_get_sceneLower() {
     return scene_lower;
 }
 
-void pyflex_set_sceneLower(py::array_t<float> sceneLower) {
-    auto buf = sceneLower.request();
-    auto ptr = (float *) buf.ptr;
-
-    g_sceneLower = Vec3(ptr[0], ptr[1], ptr[2]);
-}
-
-py::array_t<float> pyflex_get_camPos() {
-    auto camPos = py::array_t<float>(3);
-    auto buf = camPos.request();
-    auto ptr = (float *) buf.ptr;
-
-    ptr[0] = g_camPos.x;
-    ptr[1] = g_camPos.y;
-    ptr[2] = g_camPos.z;
-
-    return camPos;
-}
-
-void pyflex_set_camPos(py::array_t<float> camPos) {
-    auto buf = camPos.request();
-    auto ptr = (float *) buf.ptr;
-
-    g_camPos = Vec3(ptr[0], ptr[1], ptr[2]);
-}
-
-py::array_t<float> pyflex_get_camAngle() {
-    auto camAngle = py::array_t<float>(3);
-    auto buf = camAngle.request();
-    auto ptr = (float *) buf.ptr;
-
-    ptr[0] = g_camAngle.x;
-    ptr[1] = g_camAngle.y;
-    ptr[2] = g_camAngle.z;
-
-    return camAngle;
-}
-
-void pyflex_set_camAngle(py::array_t<float> camAngle) {
-    auto buf = camAngle.request();
-    auto ptr = (float *) buf.ptr;
-
-    g_camAngle = Vec3(ptr[0], ptr[1], ptr[2]);
-}
-
-py::array_t<float> pyflex_get_viewMatrix() {
-    auto viewMatrix = py::array_t<float>(16);
-    auto buf = viewMatrix.request();
-    auto ptr = (float *) buf.ptr;
-
-    Matrix44 view = RotationMatrix(-g_camAngle.x, Vec3(0.0f, 1.0f, 0.0f))*RotationMatrix(-g_camAngle.y, Vec3(cosf(-g_camAngle.x), 0.0f, sinf(-g_camAngle.x)))*TranslationMatrix(-Point3(g_camPos));
-
-    int cnt = 0;
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            ptr[cnt++] = view.columns[i][j];
-        }
+void pyflex_render(int capture, char *path) {
+    if (capture == 1) {
+        g_capture = true;
+        g_ffmpeg = fopen(path, "wb");
     }
-
-    return viewMatrix;
-}
-
-py::array_t<float> pyflex_get_projMatrix() {
-    auto projMatrix = py::array_t<float>(16);
-    auto buf = projMatrix.request();
-    auto ptr = (float *) buf.ptr;
-
-    float fov = kPi / 4.0f;
-    float aspect = float(g_screenWidth) / g_screenHeight;
-    Matrix44 proj = ProjectionMatrix(RadToDeg(fov), aspect, g_camNear, g_camFar);
-
-    int cnt = 0;
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            ptr[cnt++] = proj.columns[i][j];
-        }
-    }
-
-    return projMatrix;
-}
-
-void pyflex_set_floorScaleSize(float kSize) {
-    g_floorScaleSize = kSize;
-}
-
-float pyflex_get_floorScaleSize() {
-    return g_floorScaleSize;
-}
-
-void pyflex_set_screenWidth(int w) {
-    g_screenWidth = w;
-}
-
-void pyflex_set_screenHeight(int h) {
-    g_screenHeight = h;
-}
-
-int pyflex_get_screenWidth() {
-    return g_screenWidth;
-}
-
-int pyflex_get_screenHeight() {
-    return g_screenHeight;
-}
-
-void pyflex_set_hideShapes(py::array_t<float> hideShapes) {
-    auto buf = hideShapes.request();
-    auto ptr = (float *) buf.ptr;
-
-    for (int i = 0; i < g_buffers->shapeFlags.size(); ++i) {
-        g_hideShapes[i] = (int)ptr[i];
-    }
-}
-
-void pyflex_set_lightDir(py::array_t<float> lightDir) {
-    auto buf = lightDir.request();
-    auto ptr = (float *) buf.ptr;
-
-    g_lightDir = Vec3(ptr[0], ptr[1], ptr[2]);
-}
-
-py::array_t<float> pyflex_get_lightDir() {
-    auto lightDir = py::array_t<float>(3);
-    auto buf = lightDir.request();
-    auto ptr = (float *) buf.ptr;
-
-    ptr[0] = g_lightDir.x;
-    ptr[1] = g_lightDir.y;
-    ptr[2] = g_lightDir.z;
-
-    return lightDir;
-}
-
-void pyflex_set_lightFov(float lightFov) {
-    g_lightFov = lightFov;
-}
-
-float pyflex_get_lightFov() {
-    return g_lightFov;
-}
-
-py::array_t<float> pyflex_render(
-        int draw_planes, int draw_objects, int draw_shadow, bool render_depth) {
 
     static double lastTime;
 
@@ -3632,7 +3326,7 @@ py::array_t<float> pyflex_render(
     StartFrame(Vec4(g_clearColor, 1.0f));
 
     // main scene render
-    RenderScene(draw_planes, draw_objects, draw_shadow);
+    RenderScene();
     RenderDebug();
 
     int newScene = DoUI();
@@ -3654,28 +3348,19 @@ py::array_t<float> pyflex_render(
         g_mousePos = origin + dir*g_mouseT;
     }
 
-    if (!g_interop) {
-        // if not using interop then we read back fluid data to host
-        if (g_drawEllipsoids) {
-            NvFlexGetSmoothParticles(g_solver, g_buffers->smoothPositions.buffer, nullptr);
-            NvFlexGetAnisotropy(g_solver, g_buffers->anisotropy1.buffer, g_buffers->anisotropy2.buffer,
-                                g_buffers->anisotropy3.buffer, NULL);
-        }
+    if (g_capture) {
+        TgaImage img;
+        img.m_width = g_screenWidth;
+        img.m_height = g_screenHeight;
+        img.m_data = new uint32_t[g_screenWidth*g_screenHeight];
 
-        // read back diffuse data to host
-        if (g_drawDensity)
-            NvFlexGetDensities(g_solver, g_buffers->densities.buffer, nullptr);
+        ReadFrame((int*)img.m_data, g_screenWidth, g_screenHeight);
+        TgaSave(g_ffmpeg, img, false);
 
-        if (GetNumDiffuseRenderParticles(g_diffuseRenderBuffers)) {
-            NvFlexGetDiffuseParticles(g_solver, g_buffers->diffusePositions.buffer, g_buffers->diffuseVelocities.buffer,
-                                      g_buffers->diffuseCount.buffer);
-        }
-    } else {
-        // read back just the new diffuse particle count, render buffers will be updated during rendering
-        NvFlexGetDiffuseParticles(g_solver, nullptr, nullptr, g_buffers->diffuseCount.buffer);
+        // fwrite(img.m_data, sizeof(uint32_t)*g_screenWidth*g_screenHeight, 1, g_ffmpeg);
+
+        delete[] img.m_data;
     }
-
-
 
     double renderEndTime = GetSeconds();
 
@@ -3751,46 +3436,11 @@ py::array_t<float> pyflex_render(
 
     SDL_EventFunc();
 
-
-    // capture rgb
-    int num_ch;
-    if (render_depth) {
-        num_ch = 5;
-    } else {
-        num_ch = 4;
+    if (capture == 1) {
+        g_capture = false;
+        fclose(g_ffmpeg);
+        g_ffmpeg = nullptr;
     }
-    auto rgb_data = new unsigned char[g_screenWidth * g_screenHeight * 4];
-    auto depth_data = new float[g_screenWidth * g_screenHeight];
-    float z_near = g_camNear;
-    float z_far = g_camFar;
-
-    ReadFrame((int *)rgb_data, g_screenWidth, g_screenHeight);
-    ReadDepth((float *)depth_data, g_screenWidth, g_screenHeight);
-
-    auto img = py::array_t<float>((size_t) g_screenWidth * g_screenHeight * num_ch);
-    auto ptr = (float *) img.request().ptr;
-
-    for (int i = 0; i < g_screenHeight; ++i) {
-        for (int j = 0; j < g_screenWidth; ++j) {
-            for (int k = 0; k < 3; ++k) {
-                int idx_src = i * g_screenWidth * 4 + j * 4 + k;
-                int idx_des = (g_screenHeight - i - 1) * g_screenWidth * num_ch + j * num_ch + k;
-                ptr[idx_des] = rgb_data[idx_src];
-            }
-            if (render_depth) {
-                int idx_des = (g_screenHeight - i - 1) * g_screenWidth * num_ch + j * num_ch + num_ch - 1;
-                float z = depth_data[i * g_screenWidth + j];
-                z = (2.0*z)-1.0;
-                ptr[idx_des] = ( 2.0 * z_near * z_far) / ( z_far + z_near - z * ( z_far - z_near ) );
-                // ptr[idx_des] = depth_data[i * g_screenWidth + j];
-            }
-        }
-    }
-
-    delete[] rgb_data;
-    delete[] depth_data;
-
-    return img;
 }
 
 
@@ -3802,19 +3452,13 @@ PYBIND11_MODULE(pyflex, m) {
     m.def("clean", &pyflex_clean);
     m.def("step", &pyflex_step,
           py::arg("update_params") = nullptr,
-          py::arg("draw_planes") = 1,
-          py::arg("draw_objects") = 1,
-          py::arg("draw_shadow") = 1,
-          py::arg("render_depth") = 0);
+          py::arg("capture") = 0,
+          py::arg("path") = nullptr);
     m.def("render", &pyflex_render,
-          py::arg("draw_planes") = 1,
-          py::arg("draw_objects") = 1,
-          py::arg("draw_shadow") = 1,
-          py::arg("render_depth") = 0);
+          py::arg("capture") = 0,
+          py::arg("path") = nullptr);
 
     m.def("add_box", &pyflex_add_box, "Add box to the scene");
-    m.def("add_mesh", &pyflex_add_mesh, "Add mesh to the scene");
-    m.def("add_capsule", &pyflex_add_capsule, "Add capsule to the scene");
 
     m.def("get_n_particles", &pyflex_get_n_particles, "Get the number of particles");
     m.def("get_n_shapes", &pyflex_get_n_shapes, "Get the number of shapes");
@@ -3836,44 +3480,11 @@ PYBIND11_MODULE(pyflex, m) {
     m.def("get_velocities", &pyflex_get_velocities, "Get particle velocities");
     m.def("set_velocities", &pyflex_set_velocities, "Set particle velocities");
     m.def("get_phases", &pyflex_get_phases, "Get particle phases");
-    m.def("set_phases", &pyflex_set_phases, "Set particle phases");
-
-    m.def("print_g_colors", &pyflex_print_g_colors, "Print current g_colors");
-    m.def("set_color", &pyflex_set_color, "Set color");
-    m.def("set_colors", &pyflex_set_colors, "Set colors");
-    m.def("reset_colors", &pyflex_reset_colors, "Reset g_color to original");
-
-    m.def("set_fluid_color", &pyflex_set_fluid_color, "Set fluid color");
 
     m.def("get_shape_states", &pyflex_get_shape_states, "Get shape states");
     m.def("set_shape_states", &pyflex_set_shape_states, "Set shape states");
     m.def("clear_shapes", &ClearShapes, "Clear shapes");
-    m.def("set_hideShapes", &pyflex_set_hideShapes, "Set hideShapes");
 
     m.def("get_scene_upper", &pyflex_get_sceneUpper);
-    m.def("set_scene_upper", &pyflex_set_sceneUpper);
     m.def("get_scene_lower", &pyflex_get_sceneLower);
-    m.def("set_scene_lower", &pyflex_set_sceneLower);
-
-    m.def("get_light_dir", &pyflex_get_lightDir);
-    m.def("set_light_dir", &pyflex_set_lightDir);
-    m.def("get_light_fov", &pyflex_get_lightFov);
-    m.def("set_light_fov", &pyflex_set_lightFov);
-
-    m.def("get_camPos", &pyflex_get_camPos);
-    m.def("set_camPos", &pyflex_set_camPos);
-    m.def("get_camAngle", &pyflex_get_camAngle);
-    m.def("set_camAngle", &pyflex_set_camAngle);
-
-    m.def("get_projMatrix", &pyflex_get_projMatrix);
-    m.def("get_viewMatrix", &pyflex_get_viewMatrix);
-
-    m.def("get_screenWidth", &pyflex_get_screenWidth);
-    m.def("get_screenHeight", &pyflex_get_screenHeight);
-
-    m.def("set_screenWidth", &pyflex_set_screenWidth);
-    m.def("set_screenHeight", &pyflex_set_screenHeight);
-
-    m.def("set_floorScaleSize", &pyflex_set_floorScaleSize);
-    m.def("get_floorScaleSize", &pyflex_get_floorScaleSize);
 }

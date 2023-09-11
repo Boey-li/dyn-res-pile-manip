@@ -26,7 +26,7 @@ def rand_int(lo, hi):
 
 pyflex.set_screenWidth(screenWidth)
 pyflex.set_screenHeight(screenHeight)
-pyflex.init()
+pyflex.init(False)
 
 x = 0.
 y = 1.0
