@@ -92,7 +92,7 @@ def calc_shape_states(x_curr, x_last, box_dis):
 
 pyflex.set_screenWidth(screenWidth)
 pyflex.set_screenHeight(screenHeight)
-pyflex.init()
+pyflex.init(False)
 
 use_gpu = torch.cuda.is_available()
 

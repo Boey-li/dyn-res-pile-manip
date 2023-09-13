@@ -753,15 +753,15 @@ class PlannerGD(Planner):
             optim_time += optim_start.elapsed_time(optim_end)
 
             # clip to the lower and upper limits
-            for cvx_i in range(1):
-                x_diff = self.env.cvx_region[cvx_i, 1] - self.env.cvx_region[cvx_i, 0]
-                y_diff = self.env.cvx_region[cvx_i, 3] - self.env.cvx_region[cvx_i, 2]
-                cvx_lower_lim = np.array([self.env.cvx_region[cvx_i, 0], self.env.cvx_region[cvx_i, 2], self.env.cvx_region[cvx_i, 0] + x_diff * 0.15, self.env.cvx_region[cvx_i, 2] + y_diff * 0.15])
-                cvx_upper_lim = np.array([self.env.cvx_region[cvx_i, 1], self.env.cvx_region[cvx_i, 3], self.env.cvx_region[cvx_i, 1] - x_diff * 0.15, self.env.cvx_region[cvx_i, 3] - y_diff * 0.15])
-                act_seqs_tensor.data[:, :, cvx_i, 0].clamp_(min=cvx_lower_lim[0], max=cvx_upper_lim[0])
-                act_seqs_tensor.data[:, :, cvx_i, 1].clamp_(min=cvx_lower_lim[1], max=cvx_upper_lim[1])
-                act_seqs_tensor.data[:, :, cvx_i, 2].clamp_(min=cvx_lower_lim[2], max=cvx_upper_lim[2])
-                act_seqs_tensor.data[:, :, cvx_i, 3].clamp_(min=cvx_lower_lim[3], max=cvx_upper_lim[3])
+            # for cvx_i in range(1):
+            #     x_diff = self.env.cvx_region[cvx_i, 1] - self.env.cvx_region[cvx_i, 0]
+            #     y_diff = self.env.cvx_region[cvx_i, 3] - self.env.cvx_region[cvx_i, 2]
+            #     cvx_lower_lim = np.array([self.env.cvx_region[cvx_i, 0], self.env.cvx_region[cvx_i, 2], self.env.cvx_region[cvx_i, 0] + x_diff * 0.15, self.env.cvx_region[cvx_i, 2] + y_diff * 0.15])
+            #     cvx_upper_lim = np.array([self.env.cvx_region[cvx_i, 1], self.env.cvx_region[cvx_i, 3], self.env.cvx_region[cvx_i, 1] - x_diff * 0.15, self.env.cvx_region[cvx_i, 3] - y_diff * 0.15])
+            #     act_seqs_tensor.data[:, :, cvx_i, 0].clamp_(min=cvx_lower_lim[0], max=cvx_upper_lim[0])
+            #     act_seqs_tensor.data[:, :, cvx_i, 1].clamp_(min=cvx_lower_lim[1], max=cvx_upper_lim[1])
+            #     act_seqs_tensor.data[:, :, cvx_i, 2].clamp_(min=cvx_lower_lim[2], max=cvx_upper_lim[2])
+            #     act_seqs_tensor.data[:, :, cvx_i, 3].clamp_(min=cvx_lower_lim[3], max=cvx_upper_lim[3])
             # print('action_sequence_optimized', act_seq)
             # input()
             # if (time.time() - start) > time_lim:

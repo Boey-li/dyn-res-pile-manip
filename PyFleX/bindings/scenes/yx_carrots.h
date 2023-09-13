@@ -36,6 +36,7 @@ public:
 		float sing_y = ptr[17];
 		float sing_z = ptr[18];
 		float add_noise_ft = ptr[19];
+		
 		float pos_noise = pos_diff*0.5f;
 		int draw_skin = (int) draw_skin_ft;
 		int num_carrots = (int) num_carrots_ft;

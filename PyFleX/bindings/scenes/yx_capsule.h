@@ -26,6 +26,7 @@ public:
 		float num_capsules_ft = ptr[7];
 		float slices_ft = ptr[8];
 		float segments_ft = ptr[9];
+		
 		int draw_skin = (int) draw_skin_ft;
 		int num_capsules = (int) num_capsules_ft;
 		int slices = (int) slices_ft;

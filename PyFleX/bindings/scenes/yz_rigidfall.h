@@ -27,7 +27,7 @@ public:
 		int n_instance = (int) ptr[0];
 		// float dynamicFriction = ptr[1];
 		// float restitution = ptr[1];
-		float gravityY = ptr[1];
+		float gravityZ = ptr[1];
 
 		float radius = 0.1f;
 
@@ -73,7 +73,7 @@ public:
 		g_params.cohesion = 0.02f;
 		g_params.collisionDistance = 0.01f;
 		// g_params.restitution = restitution;
-		g_params.gravity[1] = gravityY;
+		g_params.gravity[2] = gravityZ;
 
 		g_maxDiffuseParticles = 0;
 		g_diffuseScale = 0.5f;

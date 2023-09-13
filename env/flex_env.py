@@ -110,14 +110,11 @@ class FlexRobotHelper:
                 # print(link.find_all('geometry')) # <geometry> <mesh filename="meshes/collision/link0.obj"/> 
                 
                 mesh_name = link.find_all('geometry')[0].find_all('mesh')[0].get('filename')
-                # print('before', mesh_name)
                 
                 # transfer stl to obj
                 if mesh_name[-4:] == '.STL' or mesh_name[-4:] == '.stl':
                     mesh_name = mesh_name[:-4] + '.obj'
                 
-                # DEBUG
-                # print(robot_path_par, mesh_name)
                 pyflex.add_mesh(os.path.join(robot_path_par, mesh_name), globalScaling, 0, np.ones(3))
                                 
                 self.num_meshes += 1
@@ -204,6 +201,7 @@ class FlexEnv(gym.Env):
         # set up pyflex
         self.screenWidth = 720
         self.screenHeight = 720
+        
         self.wkspc_w = config['dataset']['wkspc_w']
         self.headless = config['dataset']['headless']
         self.obj = config['dataset']['obj']
@@ -211,6 +209,8 @@ class FlexEnv(gym.Env):
         self.cont_motion = config['dataset']['cont_motion']
         self.init_pos = config['dataset']['init_pos']
         self.robot_type = config['dataset']['robot_type']
+        self.cam_view = config['dataset']['cam_view']
+        
         self.img_channel = 1
         self.config = config
 
@@ -225,11 +225,27 @@ class FlexEnv(gym.Env):
         rad = np.deg2rad(cam_idx * 20.)
         cam_dis = 0.0 * self.global_scale / 8.0
         # cam_dis = 6.0 * self.global_scale / 8.0
+        # cam_height = 6.0 * self.global_scale / 8.0
+        
+        # if self.obj == 'box':
+        #     cam_height = 2.0
+        # else:
         cam_height = 6.0 * self.global_scale / 8.0
-        # cam_height = 4.0 * self.global_scale / 8.0
-        self.camPos = np.array([np.sin(rad) * cam_dis, cam_height, np.cos(rad) * cam_dis])
-        self.camAngle = np.array([rad, -np.deg2rad(90.), 0.])
-        # self.camAngle = np.array([rad, -np.deg2rad(25.), 0.])
+        
+        # camera multi views 
+        if self.cam_view == 'top':
+            self.camPos = np.array([np.sin(rad) * cam_dis, cam_height, np.cos(rad) * cam_dis])
+            self.camAngle = np.array([rad, -np.deg2rad(90.), 0.])
+            # self.camAngle = np.array([rad, -np.deg2rad(25.), 0.])
+        elif self.cam_view == 'front':
+            self.camPos = np.array([0.1, 1.25, 3.])
+            self.camAngle = np.array([0., -0.2617994, 0.])
+        elif self.cam_view == 'left':
+            self.camPos = np.array([-1.4, 1.25, 1.5 * np.sqrt(3)])
+            self.camAngle = np.array([-np.radians(30.), -0.2617994, 0.])
+        elif self.cam_view == 'right':
+            self.camPos = np.array([1.6, 1.25, 1.5 * np.sqrt(3)])
+            self.camAngle = np.array([np.radians(30.), -0.2617994, 0.])
 
         # define robot information
         self.flex_robot_helper = FlexRobotHelper()
@@ -859,7 +875,7 @@ class FlexEnv(gym.Env):
                                           add_sing_z,
                                           add_noise,])
             pyflex.set_scene(22, self.scene_params, 0)
-            # pyflex.set_scene(62, self.scene_params, 0)
+            # pyflex.set_scene(4, self.scene_params, 0)
         elif self.obj == 'coffee_capsule':
             cof_scale = 0.2 * self.global_scale / 8.0
             cof_x = -1.5 * self.global_scale / 8.0
@@ -883,17 +899,23 @@ class FlexEnv(gym.Env):
         # custom scene
         elif self.obj == 'box':
             n_instance = 3
+            dynamic_friction = 0.1
+            gravity = -9.8
+            restitution = 0.1
             low_bound = 0.09
-            scene_params = np.zeros(n_instance * 3 + 1)
+            
+            scene_params = np.zeros(n_instance * 3 + 3)
             scene_params[0] = n_instance
+            scene_params[1] = gravity
+            
             for i in range(n_instance):
                 x = rand_float(0., 0.1)
                 y = rand_float(low_bound, low_bound + 0.01)
                 z = rand_float(0., 0.1)
                 
-                scene_params[3*i+1] = x
-                scene_params[3*i+2] = y
-                scene_params[3*i+3] = z
+                scene_params[3*i+2] = x
+                scene_params[3*i+3] = y
+                scene_params[3*i+4] = z
                 
                 low_bound += 0.21
             pyflex.set_scene(3, scene_params, 0)
@@ -907,7 +929,7 @@ class FlexEnv(gym.Env):
         for i in range(500):
             pyflex.step()
 
-        # add wall (pusher?)
+        # add wall
         halfEdge = np.array([0.05, 1.0, self.global_scale/2.0])
         centers = [np.array([self.global_scale/2.0, 1.0, 0.0]),
                    np.array([0.0, 1.0, -self.global_scale/2.0]),
@@ -936,8 +958,7 @@ class FlexEnv(gym.Env):
             self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'kinova/urdf/GEN3_URDF_V12.urdf', [-0.5 * self.global_scale, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale)
             self.rest_joints = [0., np.pi/6., np.pi, -np.pi/2., 0., -np.pi/3., -np.pi/4]
         elif self.robot_type == 'xarm6':
-            self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'xarm/xarm6_with_gripper.urdf', [-4.5 * self.global_scale / 8.0, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale) #TODO
-            # self.rest_joints = [0, 0, 0, 0, 0, 0] #TODO ?
+            self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'xarm/xarm6_with_gripper.urdf', [-4.5 * self.global_scale / 8.0, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale) 
             self.rest_joints = np.zeros(8)
         else:
             raise NotImplementedError
@@ -1021,13 +1042,13 @@ class FlexEnv(gym.Env):
         return sampled_ptcl, particle_r
 
     def obs2ptcl_fixed_num_batch(self, obs, particle_num, batch_size):
-        assert type(obs) == np.ndarray
-        assert obs.shape[-1] == 5
-        assert obs[..., :3].max() <= 255.0
-        assert obs[..., :3].min() >= 0.0
-        assert obs[..., :3].max() >= 1.0
-        assert obs[..., -1].max() >= 0.7 * self.global_scale
-        assert obs[..., -1].max() <= 0.8 * self.global_scale
+        # assert type(obs) == np.ndarray
+        # assert obs.shape[-1] == 5
+        # assert obs[..., :3].max() <= 255.0
+        # assert obs[..., :3].min() >= 0.0
+        # assert obs[..., :3].max() >= 1.0
+        # assert obs[..., -1].max() >= 0.7 * self.global_scale
+        # assert obs[..., -1].max() <= 0.8 * self.global_scale
         depth = obs[..., -1] / self.global_scale
         
         batch_sampled_ptcl = np.zeros((batch_size, particle_num, 3))

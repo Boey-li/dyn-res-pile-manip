@@ -27,7 +27,7 @@ pz = rand_float(0.02, 0.4 - z)
 
 scene_params = np.array([x, y, z, px, pz])
 # pyflex.set_scene(7, scene_params, 0)
-pyflex.set_scene(2, scene_params, 0)
+pyflex.set_scene(7, scene_params, 0)
 
 print("Scene Upper:", pyflex.get_scene_upper())
 print("Scene Lower:", pyflex.get_scene_lower())
