@@ -1,5 +1,5 @@
 *.avi
-data/
+data/*
 build/
 dist/
 *.egg-info
@@ -9,5 +9,6 @@ dist/
 *.profile
 *.mp4
 *.zip
+obs
 __pycache__/
 

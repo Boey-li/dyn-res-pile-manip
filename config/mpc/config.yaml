@@ -4,10 +4,10 @@ dataset:
   # - 'rand_blob': random blob-shape object pile
   # - 'rand_spread': random spreaded object pile
   # - 'rand_sparse_spread': random sparse spreaded object pile
-  global_scale: 3 # 12 (ball, coffee); 24 (carrots, capsule); 3 (box)
-  obj: "box" # "coffee"; "ball"; "capsule"; "carrots"; "coffee_capsule"
+  global_scale: 24 # 12 (ball, coffee); 24 (carrots, capsule); 3 (box)
+  obj: "carrots" # "coffee"; "ball"; "capsule"; "carrots"; "coffee_capsule"
   particle_r: 0.125 # control the particle size of underlying simulation
-  cam_idx: 0
+  cam_idx: 0 # 
   num_worker: 1
   wkspc_w: 5.0 # 2.5 (coffee, ball); 5.0 (carrots, capsule)
   headless: False
@@ -35,7 +35,7 @@ mpc:
     lr: 0.05
 
   # MPC param
-  n_mpc: 20
+  n_mpc: 20 # 20 default 
   n_look_ahead: 1
   n_sample: 10 # 50 default, 100 on server! sample M action sequences
   n_update_iter: 200

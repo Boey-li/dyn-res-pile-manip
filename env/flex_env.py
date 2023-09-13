@@ -18,6 +18,8 @@ from planners import PlannerGD
 from env.flex_rewards import config_reward, config_reward_ptcl
 import matplotlib.pyplot as plt
 import math
+from PIL import Image
+import pickle
 
 from scipy.special import softmax
 from model.res_regressor import MPCResRgrNoPool
@@ -226,10 +228,6 @@ class FlexEnv(gym.Env):
         cam_dis = 0.0 * self.global_scale / 8.0
         # cam_dis = 6.0 * self.global_scale / 8.0
         # cam_height = 6.0 * self.global_scale / 8.0
-        
-        # if self.obj == 'box':
-        #     cam_height = 2.0
-        # else:
         cam_height = 6.0 * self.global_scale / 8.0
         
         # camera multi views 
@@ -958,7 +956,7 @@ class FlexEnv(gym.Env):
             self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'kinova/urdf/GEN3_URDF_V12.urdf', [-0.5 * self.global_scale, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale)
             self.rest_joints = [0., np.pi/6., np.pi, -np.pi/2., 0., -np.pi/3., -np.pi/4]
         elif self.robot_type == 'xarm6':
-            self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'xarm/xarm6_with_gripper.urdf', [-4.5 * self.global_scale / 8.0, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale) 
+            self.robotId = pyflex.loadURDF(self.flex_robot_helper, 'xarm/xarm6_with_gripper.urdf', [-5.0 * self.global_scale / 8.0, 0, 0], [0, 0, 0, 1], globalScaling=self.global_scale) 
             self.rest_joints = np.zeros(8)
         else:
             raise NotImplementedError
@@ -1006,6 +1004,14 @@ class FlexEnv(gym.Env):
                     pyflex.set_camPos(camPos)
                     pyflex.set_camAngle(camAngle)
                     imgs.append(pyflex.render(render_depth=True).reshape(self.screenHeight, self.screenWidth, 5))
+                
+                # save images: can not work TODO
+                # for i, img in enumerate(imgs):
+                #     img = img[..., :3]
+                #     img = img.astype(np.uint8)
+                #     img = Image.fromarray(img)
+                #     img.save(f'./imgs/{i}.png')
+                
                 pyflex.set_camPos(self.camPos)
                 pyflex.set_camAngle(self.camAngle)
                 return imgs
@@ -1049,7 +1055,10 @@ class FlexEnv(gym.Env):
         # assert obs[..., :3].max() >= 1.0
         # assert obs[..., -1].max() >= 0.7 * self.global_scale
         # assert obs[..., -1].max() <= 0.8 * self.global_scale
+        
+        # print('obs', obs.shape) # carrots: (720, 720, 5)
         depth = obs[..., -1] / self.global_scale
+        # print('depth', depth.shape) # (720, 720)
         
         batch_sampled_ptcl = np.zeros((batch_size, particle_num, 3))
         batch_particle_r = np.zeros((batch_size, ))
@@ -1103,8 +1112,11 @@ class FlexEnv(gym.Env):
             # construct res_rgr input
             # first channel is the foreground mask
             fg_mask = (self.render()[..., -1] / self.global_scale < 0.599/0.8).astype(np.float32)
+            # print('fg_mask', fg_mask.shape) # (720, 720)
+                        
             # second channel is the goal mask
             subgoal_mask = (subgoal < 0.5).astype(np.float32)
+            
             particle_num = res_rgr.infer_param(fg_mask, subgoal_mask)
             print('particle_num: %d' % particle_num)
             # particle_r = np.sqrt(1.0 / particle_den)
@@ -1125,15 +1137,17 @@ class FlexEnv(gym.Env):
 
         if init_pos is not None:
             self.set_positions(init_pos)
+        # obs to ptcl
         obs_cur = self.render()
         raw_obs[0] = obs_cur
-        
+        # output: batch_sampled_ptcl, batch_particle_r
         obs_cur, particle_r = self.obs2ptcl_fixed_num_batch(obs_cur, particle_num, batch_size=30)
         
         particle_den = np.array([1 / (particle_r * particle_r)])[0]
         print('particle_den:', particle_den)
         print('particle_num:', particle_num)
         # obs_cur = self.obs2ptcl(obs_cur, particle_r)
+        
         if action_seq_mpc_init is None:
             action_seq_mpc_init, action_label_seq_mpc_init = self.sample_action(n_mpc)
         subgoal_tensor = torch.from_numpy(subgoal).float().cuda().reshape(self.screenHeight, self.screenWidth)
@@ -1230,6 +1244,15 @@ class FlexEnv(gym.Env):
 
             print('rewards: {}'.format(rewards))
             print()
+        
+        # save raw_obs
+        print('raw_obs', type(raw_obs)) # (2, 720, 720, 5)
+        np.save('ptcl/raw_obs.npy', raw_obs)
+        print('raw_obs saved to raw_obs.npy')
+        # save camera params
+        cam_params = self.get_cam_params()
+        np.save('ptcl/cam_params.npy', cam_params)
+        
         return {'rewards': rewards,
                 'raw_obs': raw_obs,
                 'states': states,
