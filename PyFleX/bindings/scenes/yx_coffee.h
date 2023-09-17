@@ -35,8 +35,8 @@ public:
         // make_path(path, "/data/sandcastle.obj");
         // make_path(path, "/data/bunny.ply");
 		
-		// char box_path[100];
-		// make_path(box_path, "/data/box.ply")
+		// char path[1000];
+		// make_path(path, "/data/box.ply");
         
 		int num_x = 8;
 		int num_y = 10;

@@ -86,7 +86,8 @@ public:
 #include "scenes/yx_carrots.h" //22
 #include "scenes/yx_coffee_capsule.h" //23
 
-
+#include "scenes/by_apple.h" //24
+#include "scenes/by_rope.h" //25
 
 #include "scenes/adhesion.h"
 #include "scenes/armadilloshower.h" 

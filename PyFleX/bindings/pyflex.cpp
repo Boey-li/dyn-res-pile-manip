@@ -2458,11 +2458,12 @@ void pyflex_init(bool headless=false) {
     }
 
     // Customized scenes
+    // scene_idx
     g_scenes.push_back(new yz_BunnyBath("Bunny Bath", true));
     g_scenes.push_back(new yz_BoxBath("Box Bath", true));
     g_scenes.push_back(new yz_DamBreak("Dam Break", true));
     g_scenes.push_back(new yz_RigidFall("Rigid Fall"));
-    g_scenes.push_back(new yz_RiceFall("Rice Fall"));
+    g_scenes.push_back(new yz_RiceFall("Rice Fall")); // Fluid Fall
 
     auto *plasticStackScene = new yz_SoftBody("Plastic Stack");
     g_scenes.push_back(plasticStackScene);
@@ -2492,13 +2493,17 @@ void pyflex_init(bool headless=false) {
 
     g_scenes.push_back(new yz_FluidAndBox("FluidAndBox"));
 
-    g_scenes.push_back(new yx_Coffee("Coffee"));
+    g_scenes.push_back(new yx_Coffee("Coffee")); //20
 
-    g_scenes.push_back(new yx_Capsule("Capsule"));
+    g_scenes.push_back(new yx_Capsule("Capsule")); //21
 
-    g_scenes.push_back(new yx_Carrots("Carrots"));
+    g_scenes.push_back(new yx_Carrots("Carrots")); //22
 
-    g_scenes.push_back(new yx_Coffee_Capsule("Coffee_Capsule"));
+    g_scenes.push_back(new yx_Coffee_Capsule("Coffee_Capsule")); //23
+
+    g_scenes.push_back(new by_Apple("Apple")); //24
+    g_scenes.push_back(new by_Rope("Rope")); //25
+
 
     /*
     // opening scene

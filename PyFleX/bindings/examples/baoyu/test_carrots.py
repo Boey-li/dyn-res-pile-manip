@@ -4,9 +4,9 @@ import pyflex
 import time
 
 
-time_step = 1000 # 120
-des_dir = 'test_FluidFall'
-os.system('mkdir -p ' + des_dir)
+time_step = 500 # 120
+# des_dir = 'test_FluidFall'
+# os.system('mkdir -p ' + des_dir)
 
 pyflex.init(False)
 

@@ -1246,12 +1246,12 @@ class FlexEnv(gym.Env):
             print()
         
         # save raw_obs
-        print('raw_obs', type(raw_obs)) # (2, 720, 720, 5)
-        np.save('ptcl/raw_obs.npy', raw_obs)
-        print('raw_obs saved to raw_obs.npy')
-        # save camera params
-        cam_params = self.get_cam_params()
-        np.save('ptcl/cam_params.npy', cam_params)
+        # print('raw_obs', type(raw_obs)) # (2, 720, 720, 5)
+        # np.save('ptcl/raw_obs.npy', raw_obs)
+        # print('raw_obs saved to raw_obs.npy')
+        # # save camera params
+        # cam_params = self.get_cam_params()
+        # np.save('ptcl/cam_params.npy', cam_params)
         
         return {'rewards': rewards,
                 'raw_obs': raw_obs,

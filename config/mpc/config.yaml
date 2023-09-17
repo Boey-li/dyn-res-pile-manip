@@ -4,8 +4,8 @@ dataset:
   # - 'rand_blob': random blob-shape object pile
   # - 'rand_spread': random spreaded object pile
   # - 'rand_sparse_spread': random sparse spreaded object pile
-  global_scale: 24 # 12 (ball, coffee); 24 (carrots, capsule); 3 (box)
-  obj: "carrots" # "coffee"; "ball"; "capsule"; "carrots"; "coffee_capsule"
+  global_scale: 3 # 12 (ball, coffee); 24 (carrots, capsule); 3 (box)
+  obj: "box" # "coffee"; "ball"; "capsule"; "carrots"; "coffee_capsule"
   particle_r: 0.125 # control the particle size of underlying simulation
   cam_idx: 0 # 
   num_worker: 1

@@ -1,9 +1,9 @@
 
-class yz_RigidFall: public Scene
+class by_Rope: public Scene
 {
 public:
 
-	yz_RigidFall(const char* name) : Scene(name) {}
+	by_Rope(const char* name) : Scene(name) {}
 
 	char* make_path(char* full_path, std::string path) {
 		strcpy(full_path, getenv("PYFLEXROOT"));
@@ -36,19 +36,24 @@ public:
 		float m = 0.25f;
 		int group = 1;
 
-		char bunny_path[100];
-		char box_path[100];
-		char sphere_path[100];
-		make_path(bunny_path, "/data/bunny.ply");
-		make_path(box_path, "/data/box.ply");
-		make_path(sphere_path, "/data/sphere.ply");
+		// char bunny_path[100];
+		// char box_path[100];
+		// char sphere_path[100];
+		// char apple_path[100];
+		// make_path(bunny_path, "/data/bunny.ply");
+		// make_path(box_path, "/data/box.ply");
+		// make_path(sphere_path, "/data/sphere.ply");
+		// make_path(apple_path, "/data/apple.obj");
+
+		char path[100];
+		make_path(path, "/data/rope.obj");
 
 		for (int i = 0; i < n_instance; i++) {
 			float x = ptr[i * 3 + 2];
 			float y = ptr[i * 3 + 3];
 			float z = ptr[i * 3 + 4];
 
-			CreateParticleShape(GetFilePathByPlatform(box_path).c_str(), Vec3(x, y, z), 0.2f, 0.0f, s, Vec3(0.0f, 0.0f, 0.0f), m, true, 1.0f, NvFlexMakePhase(group++, 0), true, 0.0f);
+			CreateParticleShape(GetFilePathByPlatform(path).c_str(), Vec3(x, y, z), 0.2f, 0.0f, s, Vec3(0.0f, 0.0f, 0.0f), m, true, 1.0f, NvFlexMakePhase(group++, 0), true, 0.0f);
 		}
 
 		float draw_mesh = ptr[n_instance * 3 + 2];

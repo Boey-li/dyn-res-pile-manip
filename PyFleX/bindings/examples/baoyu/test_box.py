@@ -6,7 +6,7 @@ import time
 def rand_float(lo, hi):
     return np.random.rand() * (hi - lo) + lo
 
-time_step = 1000 # 120
+time_step = 300 # 120
 # des_dir = 'test_FluidFall'
 # os.system('mkdir -p ' + des_dir)
 
@@ -17,6 +17,7 @@ dynamic_friction = 0.1
 gravity = -9.8
 restitution = 0.1
 low_bound = 0.09
+draw_mesh = True
 
 scene_params = np.zeros(n_instance * 3 + 3)
 scene_params[0] = n_instance
@@ -33,7 +34,11 @@ for i in range(n_instance):
     
     low_bound += 0.21
 
-pyflex.set_scene(3, scene_params, 0)
+if draw_mesh:
+    scene_params[n_instance*3 + 2] = 1 # draw mesh
+
+# pyflex.set_scene(3, scene_params, 0) # 3: RigidFall
+pyflex.set_scene(24, scene_params, 0) # 24, 25
 
 for j in range(time_step):
     # pyflex.step(capture=1, path=os.path.join(des_dir, 'render_%d.tga' % i))
