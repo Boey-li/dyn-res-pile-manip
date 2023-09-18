@@ -7,8 +7,8 @@ dataset:
   # - 'rand_spread': random spreaded object pile
   # - 'rand_sparse_spread': random sparse spreaded object pile
   global_scale: 24
-  n_episode: 100 #2000
-  n_timestep: 5 #10
+  n_episode: 2000 #2000
+  n_timestep: 10 #10
   obj: "carrots"
   particle_r: 0.125
   cam_idx: 0

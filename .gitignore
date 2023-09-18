@@ -9,6 +9,8 @@ dist/
 *.profile
 *.mp4
 *.zip
+*.npy
+test_*
 obs
 __pycache__/
 

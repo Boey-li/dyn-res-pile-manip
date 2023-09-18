@@ -211,7 +211,7 @@ class FlexEnv(gym.Env):
         self.cont_motion = config['dataset']['cont_motion']
         self.init_pos = config['dataset']['init_pos']
         self.robot_type = config['dataset']['robot_type']
-        self.cam_view = config['dataset']['cam_view']
+        # self.cam_view = config['dataset']['cam_view']
         
         self.img_channel = 1
         self.config = config
@@ -230,20 +230,26 @@ class FlexEnv(gym.Env):
         # cam_height = 6.0 * self.global_scale / 8.0
         cam_height = 6.0 * self.global_scale / 8.0
         
-        # camera multi views 
-        if self.cam_view == 'top':
-            self.camPos = np.array([np.sin(rad) * cam_dis, cam_height, np.cos(rad) * cam_dis])
-            self.camAngle = np.array([rad, -np.deg2rad(90.), 0.])
-            # self.camAngle = np.array([rad, -np.deg2rad(25.), 0.])
-        elif self.cam_view == 'front':
-            self.camPos = np.array([0.1, 1.25, 3.])
-            self.camAngle = np.array([0., -0.2617994, 0.])
-        elif self.cam_view == 'left':
-            self.camPos = np.array([-1.4, 1.25, 1.5 * np.sqrt(3)])
-            self.camAngle = np.array([-np.radians(30.), -0.2617994, 0.])
-        elif self.cam_view == 'right':
-            self.camPos = np.array([1.6, 1.25, 1.5 * np.sqrt(3)])
-            self.camAngle = np.array([np.radians(30.), -0.2617994, 0.])
+        self.camPos = np.array([np.sin(rad) * cam_dis, cam_height, np.cos(rad) * cam_dis])
+        self.camAngle = np.array([rad, -np.deg2rad(90.), 0.])
+        
+        # camera multi views
+        # if self.cam_view == 0:
+        #     self.camPos = np.array([np.sin(rad) * cam_dis, cam_height, np.cos(rad) * cam_dis])
+        #     self.camAngle = np.array([rad, -np.deg2rad(90.), 0.])
+        # elif self.cam_view == 1:
+        #     self.camPos = np.array([cam_height/4, cam_height, cam_height/4])
+        #     self.camAngle = np.array([np.deg2rad(45.), -np.deg2rad(70.), np.deg2rad(45.)])
+        # elif self.cam_view == 2:
+        #     self.camPos = np.array([cam_height/4, cam_height, -cam_height/4])
+        #     self.camAngle = np.array([np.deg2rad(130.), -np.deg2rad(70.), np.deg2rad(45.)])
+        # elif self.cam_view == 3:
+        #     self.camPos = np.array([-cam_height/4, cam_height, -cam_height/4])
+        #     self.camAngle = np.array([-np.deg2rad(130.), -np.deg2rad(70.), np.deg2rad(45.)])
+        # elif self.cam_view == 4:
+        #     self.camPos = np.array([-cam_height/4, cam_height, cam_height/4])
+        #     self.camAngle = np.array([-np.deg2rad(45.), -np.deg2rad(70.), np.deg2rad(45.)])
+            
 
         # define robot information
         self.flex_robot_helper = FlexRobotHelper()
@@ -257,7 +263,7 @@ class FlexEnv(gym.Env):
             self.num_dofs = 7
         elif self.robot_type == 'xarm6':
             self.end_idx = 6
-            self.num_dofs = 6 # 6
+            self.num_dofs = 6
 
         # define action space
         self.act_dim = 4
@@ -1005,13 +1011,6 @@ class FlexEnv(gym.Env):
                     pyflex.set_camAngle(camAngle)
                     imgs.append(pyflex.render(render_depth=True).reshape(self.screenHeight, self.screenWidth, 5))
                 
-                # save images: can not work TODO
-                # for i, img in enumerate(imgs):
-                #     img = img[..., :3]
-                #     img = img.astype(np.uint8)
-                #     img = Image.fromarray(img)
-                #     img.save(f'./imgs/{i}.png')
-                
                 pyflex.set_camPos(self.camPos)
                 pyflex.set_camAngle(self.camAngle)
                 return imgs
@@ -1246,12 +1245,11 @@ class FlexEnv(gym.Env):
             print()
         
         # save raw_obs
-        # print('raw_obs', type(raw_obs)) # (2, 720, 720, 5)
-        # np.save('ptcl/raw_obs.npy', raw_obs)
-        # print('raw_obs saved to raw_obs.npy')
-        # # save camera params
-        # cam_params = self.get_cam_params()
-        # np.save('ptcl/cam_params.npy', cam_params)
+        np.save('ptcl/raw_obs.npy', raw_obs)
+        print('raw_obs saved to raw_obs.npy')
+        # save camera params
+        cam_params = self.get_cam_params()
+        np.save('ptcl/cam_params.npy', cam_params)
         
         return {'rewards': rewards,
                 'raw_obs': raw_obs,
