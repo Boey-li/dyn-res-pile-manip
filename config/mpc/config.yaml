@@ -7,7 +7,7 @@ dataset:
   global_scale: 24 # 12 (ball, coffee); 24 (carrots, capsule); 3 (box)
   obj: "carrots" # "coffee"; "ball"; "capsule"; "carrots"; "coffee_capsule"
   particle_r: 0.125 # control the particle size of underlying simulation
-  cam_idx: 500 # default 0 
+  cam_idx: 0 # default 0 
   num_worker: 1
   wkspc_w: 5.0 # 2.5 (coffee, ball); 5.0 (carrots, capsule)
   headless: False

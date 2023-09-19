@@ -27,9 +27,11 @@ def collate_fn(data):
     max_len = max(particle_num)
     batch_size = len(data)
     n_time, _, n_dim = states[0].shape
+    
     states_tensor = torch.zeros((batch_size, n_time, max_len, n_dim), dtype=torch.float32)
     states_delta_tensor = torch.zeros((batch_size, n_time - 1, max_len, n_dim), dtype=torch.float32)
     attr = torch.zeros((batch_size, n_time, max_len), dtype=torch.float32)
+    
     particle_num_tensor = torch.tensor(particle_num, dtype=torch.int32)
     particle_den_tensor = torch.tensor(particle_den, dtype=torch.float32)
     color_imgs_np = np.array(color_imgs)

@@ -5,6 +5,7 @@ import numpy as np
 from env.flex_env import FlexEnv
 import multiprocessing as mp
 import time
+import pyflex
 
 # utils
 from utils import load_yaml, get_current_YYYY_MM_DD_hh_mm_ss_ms, set_seed
@@ -18,6 +19,7 @@ action_dim = 4
 num_worker = config['dataset']['num_worker']
 obj = config['dataset']['obj']
 wkspc_w = config['dataset']['wkspc_w']
+
 if obj == 'ball':
     waitIter = 30
 elif obj == 'coffee':
@@ -27,6 +29,8 @@ elif obj == 'capsule':
 elif obj =='carrots':
     waitIter = 200
 elif obj == 'coffee_capsule':
+    waitIter = 200
+elif obj == 'box':
     waitIter = 200
 else:
     raise ValueError("Unknown object: {}".format(obj))
@@ -38,6 +42,8 @@ def gen_data(info):
     base_epi = info["base_epi"]
     n_epi_per_worker = info["n_epi_per_worker"]
     thread_idx = info["thread_idx"]
+    verbose = info["verbose"]
+    
     env = FlexEnv(config)
     np.random.seed(round(time.time() * 1000 + thread_idx) % 2 ** 32)
 
@@ -62,6 +68,7 @@ def gen_data(info):
             if img is None:
                 print('rerun episode %d' % idx_episode)
                 continue
+        
         img = env.render()
         img[:, :, :3][img[:, :, -1] > 0.599/0.8 * global_scale] = np.ones(3) * 255.
         cv2.imwrite(os.path.join(epi_dir, '0_color.png'), img[:, :, :3][..., ::-1])
@@ -91,8 +98,10 @@ def gen_data(info):
                     valid = False
                     print('rerun epsiode %d' % idx_episode)
                     break
+                
                 img[:, :, :3][img[:, :, -1] > 0.599/0.8 * global_scale] = np.ones(3) * 255.
                 color_diff = np.mean(np.abs(img[:, :, :3] - last_img[:, :, :3]))
+                
             if valid:
                 cv2.imwrite(os.path.join(epi_dir, '%d_color.png' % (idx_timestep + 1)), img[:, :, :3][..., ::-1])
                 cv2.imwrite(os.path.join(epi_dir, '%d_depth.png' % (idx_timestep + 1)), (img[:, :, -1]*1000).astype(np.uint16))
@@ -100,6 +109,13 @@ def gen_data(info):
                     np.save(f, env.get_positions())
                 actions[idx_timestep] = u
                 last_img = img.copy()
+                
+                if verbose:
+                    print('episode %d' % idx_timestep)
+                    print('action: ', u)
+                    print('num particles: ', len(env.get_positions()))
+                    print('particle positions: ', env.get_positions().shape[0] // 4)
+                    print('\n')
             else:
                 break
         if valid:
@@ -107,7 +123,8 @@ def gen_data(info):
 
         with open(os.path.join(epi_dir, 'actions.p'), 'wb') as fp:
             pickle.dump(actions, fp)
-
+        
+    
     env.close()
 
 # infos=[]
@@ -125,6 +142,7 @@ def gen_data(info):
 info = {
     "base_epi": 0,
     "n_epi_per_worker": n_episode,
-    "thread_idx": 1
+    "thread_idx": 1,
+    "verbose": True
 }
 gen_data(info)

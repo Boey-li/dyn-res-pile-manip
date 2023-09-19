@@ -66,7 +66,9 @@ public:
 					}
 					float scale_r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 					float scale = min_scale + (max_scale-min_scale)*scale_r;
-					// void CreateParticleShape(const Mesh* srcMesh, Vec3 lower, Vec3 scale, float rotation, float spacing, Vec3 velocity, float invMass, bool rigid, float rigidStiffness, int phase, bool skin, float jitter=0.005f, Vec3 skinOffset=0.0f, float skinExpand=0.0f, Vec4 color=Vec4(0.0f), float springStiffness=0.0f)
+					// void CreateParticleShape(const Mesh* srcMesh, Vec3 lower, 
+					// Vec3 scale, float rotation, float spacing, Vec3 velocity, float invMass, bool rigid, float rigidStiffness, 
+					// int phase, bool skin, float jitter=0.005f, Vec3 skinOffset=0.0f, float skinExpand=0.0f, Vec4 color=Vec4(0.0f), float springStiffness=0.0f)
 					if (draw_skin) {
 						int num_planes = Rand(6,12);
 						Mesh* m = CreateRandomConvexMesh(num_planes, minDist, maxDist);

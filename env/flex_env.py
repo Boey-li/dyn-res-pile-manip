@@ -192,8 +192,8 @@ class FlexEnv(gym.Env):
         self.is_real = False
 
         # set up pybullet
-        physicsClient = p.connect(p.GUI) # pybullet visualization 
-        # physicsClient = p.connect(p.DIRECT)
+        # physicsClient = p.connect(p.GUI) # pybullet visualization 
+        physicsClient = p.connect(p.DIRECT)
         p.setAdditionalSearchPath(pybullet_data.getDataPath()) #optionally
         p.setGravity(0,0,-10)
         self.planeId = p.loadURDF("plane.urdf")
@@ -317,6 +317,7 @@ class FlexEnv(gym.Env):
                 h = 0.11 * self.global_scale
             elif self.robot_type == 'xarm6':
                 h = self.global_scale / 8.0  #TODO
+                # h = self.global_scale / 10.0
             else:
                 raise NotImplementedError
             s_2d = np.concatenate([action[:2], [h]])
@@ -381,6 +382,7 @@ class FlexEnv(gym.Env):
                 if video_recorder:
                     obs = self.render(add_cam_idx=add_cam_idx)
                     if not isinstance(obs, list):
+                        # video_recorder[0].write(obs[..., :3][..., ::-1].astype(np.uint8))
                         video_recorder[0].write(obs[..., :3][..., ::-1].astype(np.uint8))
                     else:
                         for i, obs_i in enumerate(obs):
@@ -879,7 +881,6 @@ class FlexEnv(gym.Env):
                                           add_sing_z,
                                           add_noise,])
             pyflex.set_scene(22, self.scene_params, 0)
-            # pyflex.set_scene(4, self.scene_params, 0)
         elif self.obj == 'coffee_capsule':
             cof_scale = 0.2 * self.global_scale / 8.0
             cof_x = -1.5 * self.global_scale / 8.0
@@ -1245,11 +1246,11 @@ class FlexEnv(gym.Env):
             print()
         
         # save raw_obs
-        np.save('ptcl/raw_obs.npy', raw_obs)
-        print('raw_obs saved to raw_obs.npy')
-        # save camera params
-        cam_params = self.get_cam_params()
-        np.save('ptcl/cam_params.npy', cam_params)
+        # np.save('ptcl/raw_obs.npy', raw_obs)
+        # print('raw_obs saved to raw_obs.npy')
+        # # save camera params
+        # cam_params = self.get_cam_params()
+        # np.save('ptcl/cam_params.npy', cam_params)
         
         return {'rewards': rewards,
                 'raw_obs': raw_obs,

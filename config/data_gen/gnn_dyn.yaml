@@ -6,14 +6,14 @@ dataset:
   # - 'rand_blob': random blob-shape object pile
   # - 'rand_spread': random spreaded object pile
   # - 'rand_sparse_spread': random sparse spreaded object pile
-  global_scale: 24
-  n_episode: 2000
-  n_timestep: 10
+  global_scale: 24 #24
+  n_episode: 10 # 2000
+  n_timestep: 10 # 10
   obj: "carrots"
   particle_r: 0.125
   cam_idx: 0
   num_worker: 1
   wkspc_w: 5.0
-  headless: True
+  headless: False # pyflex visualization 
   cont_motion: False
-  robot_type: 'franka' # kinova; franka
+  robot_type: 'xarm6' # kinova; franka; xarm6
