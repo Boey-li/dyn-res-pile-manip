@@ -1,5 +1,3 @@
-
-
 class yx_Coffee : public Scene
 {
 public:
@@ -63,7 +61,9 @@ public:
 					// int phase, bool skin, float jitter=0.005f, Vec3 skinOffset=0.0f, 
 					// float skinExpand=0.0f, Vec4 color=Vec4(0.0f), float springStiffness=0.0f)
 					if (draw_skin) {
-						CreateParticleShape(GetFilePathByPlatform(path).c_str(), Vec3(x+float(x_idx)*pos_diff, y+float(y_idx)*pos_diff, z+float(z_idx)*pos_diff), scale, 0.0f, radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 0.1f, Vec4(0.29f, 0.17f, 0.16f, 1.0f));
+						CreateParticleShape(GetFilePathByPlatform(path).c_str(), 
+											Vec3(x+float(x_idx)*pos_diff, y+float(y_idx)*pos_diff, z+float(z_idx)*pos_diff), 
+											scale, 0.0f, radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 0.1f, Vec4(0.29f, 0.17f, 0.16f, 1.0f));
 						g_drawPoints = false;
 					} else {
 						CreateParticleShape(GetFilePathByPlatform(path).c_str(), Vec3(x+float(x_idx)*pos_diff, y+float(y_idx)*pos_diff, z+float(z_idx)*pos_diff), scale, 0.0f, radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), false);

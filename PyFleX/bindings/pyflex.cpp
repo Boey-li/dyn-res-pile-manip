@@ -1189,7 +1189,7 @@ void RenderScene(int draw_planes, int draw_objects, int draw_shadow) {
     //---------------------------------------------------
     // use VBO buffer wrappers to allow Flex to write directly to the OpenGL buffers
     // Flex will take care of any CUDA interop mapping/unmapping during the get() operations
-
+    
     if (numParticles) {
         if (g_interop) {
             // copy data directly from solver to the renderer buffers
@@ -1197,7 +1197,6 @@ void RenderScene(int draw_planes, int draw_objects, int draw_shadow) {
         }
         else {
             // copy particle data to GPU render device
-
             if (g_drawEllipsoids) {
                 // if fluid surface rendering then update with smooth positions and anisotropy
                 UpdateFluidRenderBuffers(g_fluidRenderBuffers,
@@ -1288,7 +1287,6 @@ void RenderScene(int draw_planes, int draw_objects, int draw_shadow) {
     SetCullMode(false);
 
     if (draw_shadow) {
-                
         // give scene a chance to do custom drawing
         if (draw_objects)
             g_scenes[g_scene]->Draw(1);
@@ -1303,14 +1301,26 @@ void RenderScene(int draw_planes, int draw_objects, int draw_shadow) {
             DrawCloth(&g_buffers->positions[0], &g_buffers->normals[0], g_buffers->uvs.size() ? &g_buffers->uvs[0].x : NULL, &g_buffers->triangles[0], g_buffers->triangles.size() / 3, g_buffers->positions.size(), 3, g_expandCloth);
         }
 
-        if (draw_objects && g_drawRopes) {
-            for (size_t i = 0; i < g_ropes.size(); ++i)
-                DrawRope(&g_buffers->positions[0], &g_ropes[i].mIndices[0], g_ropes[i].mIndices.size(), radius*g_ropeScale, i);
-        }
+        // if (draw_objects && g_drawRopes) {
+        //     for (size_t i = 0; i < g_ropes.size(); ++i){
+        //         printf("\ndrawRopes\n");
+                
+        //         cout << g_ropes.size() << endl; //1
+        //         cout << g_buffers->positions.size() << endl; //42 -> 41
+        //         cout << g_ropes[i].mIndices[0] << endl; //1 -> 0
+        //         cout << g_ropes[i].mIndices[1] << endl; //2 -> 1
+        //         cout << g_ropes[i].mIndices[2] << endl; //3 -> 2
+        //         cout << g_ropes[i].mIndices.size() << endl; //41
+
+        //         printf("\n");
+
+        //         DrawRope(&g_buffers->positions[0], &g_ropes[i].mIndices[0], g_ropes[i].mIndices.size(), radius*g_ropeScale, i);
+        //         }
+        // }
 
         int shadowParticles = numParticles;
         int shadowParticlesOffset = 0;
-
+        
         if (!g_drawPoints) {
             shadowParticles = 0;
 
@@ -1363,10 +1373,10 @@ void RenderScene(int draw_planes, int draw_objects, int draw_shadow) {
         if (draw_objects && g_drawCloth && g_buffers->triangles.size())
             DrawCloth(&g_buffers->positions[0], &g_buffers->normals[0], g_buffers->uvs.size() ? &g_buffers->uvs[0].x : nullptr, &g_buffers->triangles[0], g_buffers->triangles.size() / 3, g_buffers->positions.size(), 3, g_expandCloth);
 
-        if (draw_objects && g_drawRopes) {
-            for (size_t i = 0; i < g_ropes.size(); ++i)
-                DrawRope(&g_buffers->positions[0], &g_ropes[i].mIndices[0], g_ropes[i].mIndices.size(), g_params.radius*0.5f*g_ropeScale, i);
-        }
+        // if (draw_objects && g_drawRopes) {
+        //     for (size_t i = 0; i < g_ropes.size(); ++i)
+        //         DrawRope(&g_buffers->positions[0], &g_ropes[i].mIndices[0], g_ropes[i].mIndices.size(), g_params.radius*0.5f*g_ropeScale, i);
+        // }
 
         // give scene a chance to do custom drawing
         if (draw_objects)
@@ -1962,7 +1972,7 @@ void UpdateFrame(py::array_t<float> update_params, int draw_planes, int draw_obj
         UpdateWind();
         UpdateScene(update_params);
     }
-
+   
     //-------------------------------------------------------------------
     // Render
 
@@ -1990,8 +2000,8 @@ void UpdateFrame(py::array_t<float> update_params, int draw_planes, int draw_obj
 
     // If user has disabled async compute, ensure that no compute can overlap
     // graphics by placing a sync between them
-    if (!g_useAsyncCompute)
-        NvFlexComputeWaitForGraphics(g_flexLib);
+    if (!g_useAsyncCompute) {
+        NvFlexComputeWaitForGraphics(g_flexLib);}
 
     UnmapBuffers(g_buffers);
 
@@ -2010,7 +2020,6 @@ void UpdateFrame(py::array_t<float> update_params, int draw_planes, int draw_obj
         // Reset();
         g_resetScene = false;
     }
-
     //-------------------------------------------------------------------
     // Flex Update
 
@@ -2088,7 +2097,6 @@ void UpdateFrame(py::array_t<float> update_params, int draw_planes, int draw_obj
     }
 
     double updateEndTime = GetSeconds();
-
     //-------------------------------------------------------
     // Update the on-screen timers
 
@@ -2502,7 +2510,8 @@ void pyflex_init(bool headless=false) {
     g_scenes.push_back(new yx_Coffee_Capsule("Coffee_Capsule")); //23
 
     g_scenes.push_back(new by_Apple("Apple")); //24
-    g_scenes.push_back(new by_Rope("Rope")); //25
+    g_scenes.push_back(new by_YCB("YCB")); // 25
+    g_scenes.push_back(new by_Rope("Rope")); //26
 
 
     /*
@@ -2908,7 +2917,6 @@ void SDL_EventFunc() {
 void pyflex_step(
         py::array_t<float> update_params,
         int draw_planes, int draw_objects, int draw_shadow, bool render_depth) {
-
     UpdateFrame(update_params, draw_planes, draw_objects, draw_shadow);
     SDL_EventFunc();
 }
@@ -3805,12 +3813,14 @@ PYBIND11_MODULE(pyflex, m) {
     m.def("init", &pyflex_init);
     m.def("set_scene", &pyflex_set_scene);
     m.def("clean", &pyflex_clean);
+    
     m.def("step", &pyflex_step,
           py::arg("update_params") = nullptr,
           py::arg("draw_planes") = 1,
           py::arg("draw_objects") = 1,
           py::arg("draw_shadow") = 1,
           py::arg("render_depth") = 0);
+    
     m.def("render", &pyflex_render,
           py::arg("draw_planes") = 1,
           py::arg("draw_objects") = 1,

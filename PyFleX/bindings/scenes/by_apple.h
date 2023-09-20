@@ -1,4 +1,3 @@
-
 class by_Apple: public Scene
 {
 public:

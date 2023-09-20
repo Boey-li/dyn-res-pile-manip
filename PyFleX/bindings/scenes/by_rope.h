@@ -1,5 +1,4 @@
-
-class by_Rope: public Scene
+class by_Rope : public Scene
 {
 public:
 
@@ -11,110 +10,99 @@ public:
 		return full_path;
 	}
 
-	float rand_float(float LO, float HI) {
-        return LO + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(HI-LO)));
-    }
-
-    void swap(float* a, float* b) {
-	    float tmp = *a;
-	    *a = *b;
-	    *b = tmp;
-	}
-
 	void Initialize(py::array_t<float> scene_params, int thread_idx = 0)
 	{
 		auto ptr = (float *) scene_params.request().ptr;
-		int n_instance = (int) ptr[0];
-		// float dynamicFriction = ptr[1];
-		// float restitution = ptr[1];
-		float gravityY = ptr[1];
 
-		float radius = 0.1f;
+		float x = ptr[0];
+		float y = ptr[1];
+		float z = ptr[2];
+		float length = ptr[3];
+		float stiffness = ptr[4];
+		float draw_mesh = ptr[5];
 
-		// deforming bunny
-		float s = radius*0.5f;
-		float m = 0.25f;
-		int group = 1;
+		float radius = 0.055f;
 
-		// char bunny_path[100];
-		// char box_path[100];
-		// char sphere_path[100];
-		// char apple_path[100];
-		// make_path(bunny_path, "/data/bunny.ply");
-		// make_path(box_path, "/data/box.ply");
-		// make_path(sphere_path, "/data/sphere.ply");
-		// make_path(apple_path, "/data/apple.obj");
+		int group = 0;
 
 		char path[100];
-		make_path(path, "/data/rope.obj");
+		make_path(path, "/data/sphere.ply");
+		// make_path(path, "/data/rope.ply"); # can not work
+		// make_path(path, "/data/apple.obj");
+		// make_path(path, "/data/pear.obj");
+		// make_path(path, "/data/coffee_bean.ply");
 
-		for (int i = 0; i < n_instance; i++) {
-			float x = ptr[i * 3 + 2];
-			float y = ptr[i * 3 + 3];
-			float z = ptr[i * 3 + 4];
+		Vec3 velocity = RandomUnitVector()*1.0f;
+		float size = 1;
 
-			CreateParticleShape(GetFilePathByPlatform(path).c_str(), Vec3(x, y, z), 0.2f, 0.0f, s, Vec3(0.0f, 0.0f, 0.0f), m, true, 1.0f, NvFlexMakePhase(group++, 0), true, 0.0f);
-		}
+		CreateParticleShape(
+		        GetFilePathByPlatform(path).c_str(),
+				Vec3(0., 1., 0.),
+				size, 0.0f, radius, 0.0f, 0.15f, true, 1.0f, NvFlexMakePhase(0, 0), true, 0.0f);
 
-		float draw_mesh = ptr[n_instance * 3 + 2];
+		const int attachIndex = g_buffers->positions.size()-1;
+		int start = g_buffers->positions.size();
+		printf("attachIndex: %d\n", attachIndex); //0 -> -1
+		printf("start: %d\n", start); //1 -> 0
 
-		g_numSolidParticles = g_buffers->positions.size();
+		// Rope r;
+		// Vec3 pos = Vec3(x, y, z);
 
-		float restDistance = radius*0.55f;
+		// // void CreateRope(Rope& rope, Vec3 start, Vec3 dir, float stiffness, int segments, float length, int phase, float spiralAngle=0.0f, float invmass=1.0f, float give=0.075f)
+		// CreateRope(r, pos, Vec3(0.0f, 1.0f, 0.0f), stiffness, int(length/radius*1.1f), length, 
+		// 		NvFlexMakePhase(group++, 0), 0.0f, 0.5f, 0.0f);
 
-		g_sceneLower = Vec3(0.0f, 0.0f, 0.0f);
-		g_sceneUpper = Vec3(0.6f, 0.0f, 0.4f);
+		// g_ropes.push_back(r);
+
+		// const int attachIndex = g_buffers->positions.size()-1;
+		// int start = g_buffers->positions.size();
+		// printf("attachIndex: %d\n", attachIndex);
+		// printf("start: %d\n", start);
+
+		// CreateSpring(attachIndex, start, 1.0f);
+
+		g_params.radius = radius;
+		g_params.fluidRestDistance = radius;
+		g_params.numIterations = 4;
+		g_params.viscosity = 1.0f;
+		g_params.dynamicFriction = 0.05f;
+		g_params.staticFriction = 0.0f;
+		g_params.particleCollisionMargin = 0.0f;
+		g_params.collisionDistance = g_params.fluidRestDistance*0.5f;
+		g_params.vorticityConfinement = 120.0f;
+		g_params.cohesion = 0.0025f;
+		g_params.drag = 0.06f;
+		g_params.lift = 0.f;
+		g_params.solidPressure = 0.0f;
+		g_params.smoothing = 1.0f;
+		g_params.relaxationFactor = 1.0f;
+
+		// g_windStrength = 0.0f;
+		// g_windFrequency = 0.0f;
 
 		g_numSubsteps = 2;
 
-		g_params.radius = radius;
-		g_params.dynamicFriction = 1.0f;
-		g_params.viscosity = 2.0f;
-		g_params.numIterations = 4;
-		g_params.vorticityConfinement = 40.0f;
-		g_params.fluidRestDistance = restDistance;
-		g_params.solidPressure = 0.f;
-		g_params.relaxationFactor = 0.0f;
-		g_params.cohesion = 0.02f;
-		g_params.collisionDistance = 0.01f;
-		// g_params.restitution = restitution;
-		g_params.gravity[1] = gravityY;
-
-		g_maxDiffuseParticles = 0;
-		g_diffuseScale = 0.5f;
-
-		g_fluidColor = Vec4(0.113f, 0.425f, 0.55f, 1.f);
-
-		Emitter e1;
-		e1.mDir = Vec3(1.0f, 0.0f, 0.0f);
-		e1.mRight = Vec3(0.0f, 0.0f, -1.0f);
-		e1.mPos = Vec3(radius, 1.f, 0.65f);
-		e1.mSpeed = (restDistance/g_dt)*2.0f; // 2 particle layers per-frame
-		e1.mEnabled = true;
-
-		g_emitters.push_back(e1);
-
-		// g_numExtraParticles = 48*1024;
-
-		g_lightDistance = 1.8f;
-
-		// g_params.numPlanes = 5;
-
-		g_waveFloorTilt = 0.0f;
-		g_waveFrequency = 1.5f;
-		g_waveAmplitude = 2.0f;
-		
-		g_warmup = false;
-
 		// draw options
-		if (!draw_mesh) {
-			g_drawPoints = true;
-			g_drawMesh = false;
-			g_drawEllipsoids = false;
-			g_drawDiffuse = true;
-		} else {
-			g_drawPoints = false;
-			g_drawSprings = false;
-		}
+		// if (!draw_mesh) {
+        //     g_drawPoints = true;
+        //     // g_drawMesh = false;
+        //     g_drawRopes = false;
+        //     g_drawSprings = true;
+        // }
+        // else {
+		//     // g_drawPoints = false;
+		//     // g_drawMesh = true;
+		//     g_drawRopes = true;
+		//     // g_drawSprings = false;
+		// }
+
+		g_drawRopes = true;
+		g_drawMesh = true;
+		g_drawPoints = false;
+		g_drawSprings = false;
+
+		g_ropeScale = 1.0f;
+		g_warmup = false;
 	}
+	
 };
