@@ -2471,10 +2471,10 @@ void pyflex_init(bool headless=false) {
     g_scenes.push_back(new yz_BoxBath("Box Bath", true));
     g_scenes.push_back(new yz_DamBreak("Dam Break", true));
     g_scenes.push_back(new yz_RigidFall("Rigid Fall"));
-    g_scenes.push_back(new yz_RiceFall("Rice Fall")); // Fluid Fall
+    g_scenes.push_back(new yz_RiceFall("Rice Fall")); // Fluid Fall 4
 
-    auto *plasticStackScene = new yz_SoftBody("Plastic Stack");
-    g_scenes.push_back(plasticStackScene);
+    auto *plasticStackScene = new yz_SoftBody("Plastic Stack"); 
+    g_scenes.push_back(plasticStackScene); //5
 
     g_scenes.push_back(new yz_FluidShake("Fluid Shake"));
     g_scenes.push_back(new yz_BoxBathExt("Box Bath Extension", true));
@@ -2511,7 +2511,8 @@ void pyflex_init(bool headless=false) {
 
     g_scenes.push_back(new by_Apple("Apple")); //24
     g_scenes.push_back(new by_YCB("YCB")); // 25
-    g_scenes.push_back(new by_Rope("Rope")); //26
+    g_scenes.push_back(new by_SoftRope("Soft Rope")); //26
+    g_scenes.push_back(new by_Cloth("Cloth")); //27
 
 
     /*
@@ -2994,8 +2995,8 @@ void pyflex_add_capsule(py::array_t<float> params, py::array_t<float> lower_pos,
     pyflex_UnmapShapeBuffers(g_buffers);
 }
 
-void pyflex_add_mesh(const char *s, float scaling, int hideShape, py::array_t<float> color) {
-    Mesh* m = ImportMesh(s);
+void pyflex_add_mesh(const char *s, float scaling, int hideShape, py::array_t<float> color, bool texture=false) {
+    Mesh* m = ImportMesh(s, texture);
     m->Transform(ScaleMatrix(Vec3(scaling)));
 
     NvFlexTriangleMeshId mesh = CreateTriangleMesh(m);

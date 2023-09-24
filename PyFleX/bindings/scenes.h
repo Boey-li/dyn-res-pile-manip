@@ -88,7 +88,8 @@ public:
 
 #include "scenes/by_apple.h" //24
 #include "scenes/by_ycb.h" //25
-#include "scenes/by_rope.h" //26
+#include "scenes/by_softrope.h" //26
+#include "scenes/by_cloth.h" //27
 
 #include "scenes/adhesion.h"
 #include "scenes/armadilloshower.h" 
