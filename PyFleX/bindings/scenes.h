@@ -38,7 +38,17 @@ public:
 
 	Scene(const char* name) : mName(name) {}
 	
-	virtual void Initialize(py::array_t<float> scene_params, int thread_idx = 0) = 0;
+	// virtual void Initialize(py::array_t<float> scene_params, int thread_idx = 0) = 0;
+
+	virtual void Initialize(
+				py::array_t<float> scene_params, 
+				py::array_t<float> vertices,
+				py::array_t<int> stretch_edges,
+				py::array_t<int> bend_edges,
+				py::array_t<int> shear_edges,
+				py::array_t<int> faces, 
+				int thread_idx = 0){};
+
 	virtual void PostInitialize() {}
 	
 	// update any buffers (all guaranteed to be mapped here)
@@ -87,9 +97,12 @@ public:
 #include "scenes/yx_coffee_capsule.h" //23
 
 #include "scenes/by_apple.h" //24
-#include "scenes/by_ycb.h" //25
+#include "scenes/by_singleycb.h" //25
 #include "scenes/by_softrope.h" //26
 #include "scenes/by_cloth.h" //27
+#include "scenes/by_multiycb.h" //28
+#include "scenes/softgym_cloth.h" //29
+#include "scenes/softgym_cloth_2.h" //30
 
 #include "scenes/adhesion.h"
 #include "scenes/armadilloshower.h" 

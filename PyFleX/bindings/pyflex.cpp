@@ -541,7 +541,19 @@ inline float sqr(float x) { return x*x; }
 
 void InitRenderHeadless(const RenderInitOptions& options, int width, int height); //add
 
-void Init(int scene, py::array_t<float> scene_params, bool centerCamera = true, int thread_idx = 0) {
+// virtual void Initialize(
+// 				py::array_t<float> scene_params, 
+// 				py::array_t<float> vertices,
+// 				py::array_t<int> stretch_edges,
+// 				py::array_t<int> bend_edges,
+// 				py::array_t<int> shear_edges,
+// 				py::array_t<int> faces, 
+// 				int thread_idx = 0){};
+
+void Init(int scene, py::array_t<float> scene_params, 
+        py::array_t<float> vertices, py::array_t<int> stretch_edges,
+        py::array_t<int> bend_edges, py::array_t<int> shear_edges, py::array_t<int> faces,
+            bool centerCamera = true, int thread_idx = 0) {
     RandInit();
 
     if (g_solver) {
@@ -748,7 +760,8 @@ void Init(int scene, py::array_t<float> scene_params, bool centerCamera = true, 
 
     // create scene
     StartGpuWork();
-    g_scenes[g_scene]->Initialize(scene_params, thread_idx);
+    // g_scenes[g_scene]->Initialize(scene_params, thread_idx);
+    g_scenes[g_scene]->Initialize(scene_params, vertices, stretch_edges, bend_edges, shear_edges, faces, thread_idx);
     EndGpuWork();
 
     uint32_t numParticles = g_buffers->positions.size();
@@ -2510,9 +2523,12 @@ void pyflex_init(bool headless=false) {
     g_scenes.push_back(new yx_Coffee_Capsule("Coffee_Capsule")); //23
 
     g_scenes.push_back(new by_Apple("Apple")); //24
-    g_scenes.push_back(new by_YCB("YCB")); // 25
+    g_scenes.push_back(new by_SingleYCB("Single YCB")); // 25
     g_scenes.push_back(new by_SoftRope("Soft Rope")); //26
     g_scenes.push_back(new by_Cloth("Cloth")); //27
+    g_scenes.push_back(new by_MultiYCB("Multi YCB")); //28
+    g_scenes.push_back(new SoftgymCloth("Softgym Flag Cloth")); //29
+    g_scenes.push_back(new SoftgymCloth2("Softgym Cloth")); //30
 
 
     /*
@@ -2926,10 +2942,27 @@ float rand_float(float LO, float HI) {
     return LO + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(HI-LO)));
 }
 
-void pyflex_set_scene(int scene_idx, py::array_t<float> scene_params, int thread_idx = 0) {
+// void pyflex_set_scene(int scene_idx, py::array_t<float> scene_params, int thread_idx = 0) {
+//     g_scene = scene_idx;
+//     g_selectedScene = g_scene;
+//     Init(g_selectedScene, scene_params, true, thread_idx);
+// }
+
+void pyflex_set_scene(
+    int scene_idx,
+    py::array_t<float> scene_params,
+    py::array_t<float> vertices,
+    py::array_t<int> stretch_edges,
+    py::array_t<int> bend_edges,
+    py::array_t<int> shear_edges,
+    py::array_t<int> faces,
+    int thread_idx = 0)
+{
     g_scene = scene_idx;
     g_selectedScene = g_scene;
-    Init(g_selectedScene, scene_params, true, thread_idx);
+    Init(g_selectedScene, scene_params, vertices,
+         stretch_edges, bend_edges, shear_edges, faces,
+         true, thread_idx);
 }
 
 void pyflex_MapShapeBuffers(SimBuffers* buffers) {

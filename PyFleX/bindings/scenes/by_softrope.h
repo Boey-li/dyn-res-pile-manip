@@ -109,57 +109,34 @@ public:
 		this->mInstances.push_back(instance);
 	}
 
-	virtual void AddStack(Instance instance, int xStack, int yStack, int zStack, bool rotateColors = false)
-	{
-		Vec3 translation = instance.mTranslation;
-		for (int x = 0; x < xStack; ++x)
-		{
-			for (int y = 0; y < yStack; ++y)
-			{
-				for (int z = 0; z < zStack; ++z)
-				{
-					instance.mTranslation = translation + Vec3(x*(instance.mScale.x + 1), y*(instance.mScale.y + 1), z*(instance.mScale.z + 1))*mRadius;
-					if (rotateColors) {
-						instance.mColor = mColorPicker[(x*yStack*zStack + y*zStack + z) % 7];
-					}
-					this->mInstances.push_back(instance);
-				}
-			}
-		}
-	}
-
 	char* make_path(char* full_path, std::string path) {
 		strcpy(full_path, getenv("PYFLEXROOT"));
 		strcat(full_path, path.c_str());
 		return full_path;
 	}
 
-	virtual void Initialize(py::array_t<float> scene_params, int thread_idx = 0)
+	void Initialize(py::array_t<float> scene_params, 
+                    py::array_t<float> vertices,
+                    py::array_t<int> stretch_edges,
+                    py::array_t<int> bend_edges,
+                    py::array_t<int> shear_edges,
+                    py::array_t<int> faces,
+                    int thread_idx = 0)
 	{
 		auto ptr = (float *) scene_params.request().ptr;
 
-                int draw_mesh = (int) ptr[9];
+        int draw_mesh = (int) ptr[9];
 		Vec3 scale = Vec3(ptr[0], ptr[1], ptr[2]);
-		Vec3 trans = Vec3(ptr[3], ptr[4], ptr[5]);
 		float clusterSpacing = ptr[6];
 		float clusterRadius = ptr[7];
 		float clusterStiffness = ptr[8];
 
-		// char box_very_high_path[100];
-		// Instance rod(make_path(box_very_high_path, "/data/box_very_high.ply"));
-		// rod.mScale = scale;
-		// rod.mTranslation = trans;
-		// rod.mClusterSpacing = clusterSpacing;
-		// rod.mClusterRadius = clusterRadius;
-		// rod.mClusterStiffness = clusterStiffness;
-		// AddInstance(rod);
-
 		char rope_path[100];
 		Instance rope(make_path(rope_path, "/data/rope.obj"));
-		rope.mScale = Vec3(50.f);
-		rope.mClusterSpacing = 1.5f;
-		rope.mClusterRadius = 0.0f;
-		rope.mClusterStiffness = 0.55f;
+		rope.mScale = scale;
+		rope.mClusterSpacing = clusterSpacing;
+		rope.mClusterRadius = clusterRadius;
+		rope.mClusterStiffness = clusterStiffness;
 		AddInstance(rope);
 
 		float radius = mRadius;
