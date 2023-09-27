@@ -232,24 +232,6 @@ class FlexEnv(gym.Env):
         
         self.camPos = np.array([np.sin(rad) * cam_dis, cam_height, np.cos(rad) * cam_dis])
         self.camAngle = np.array([rad, -np.deg2rad(90.), 0.])
-        
-        # camera multi views
-        # if self.cam_view == 0:
-        #     self.camPos = np.array([np.sin(rad) * cam_dis, cam_height, np.cos(rad) * cam_dis])
-        #     self.camAngle = np.array([rad, -np.deg2rad(90.), 0.])
-        # elif self.cam_view == 1:
-        #     self.camPos = np.array([cam_height/4, cam_height, cam_height/4])
-        #     self.camAngle = np.array([np.deg2rad(45.), -np.deg2rad(70.), np.deg2rad(45.)])
-        # elif self.cam_view == 2:
-        #     self.camPos = np.array([cam_height/4, cam_height, -cam_height/4])
-        #     self.camAngle = np.array([np.deg2rad(130.), -np.deg2rad(70.), np.deg2rad(45.)])
-        # elif self.cam_view == 3:
-        #     self.camPos = np.array([-cam_height/4, cam_height, -cam_height/4])
-        #     self.camAngle = np.array([-np.deg2rad(130.), -np.deg2rad(70.), np.deg2rad(45.)])
-        # elif self.cam_view == 4:
-        #     self.camPos = np.array([-cam_height/4, cam_height, cam_height/4])
-        #     self.camAngle = np.array([-np.deg2rad(45.), -np.deg2rad(70.), np.deg2rad(45.)])
-            
 
         # define robot information
         self.flex_robot_helper = FlexRobotHelper()

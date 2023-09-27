@@ -31,23 +31,25 @@ public:
                     int thread_idx = 0)
     {
         auto ptr = (float *)scene_params.request().ptr;
+        // position 
         float initX = ptr[0];
         float initY = ptr[1];
         float initZ = ptr[2];
 
+        // size
         int dimx = (int)ptr[3];
         int dimz = (int)ptr[4];
-        // float radius = 0.00625f;
-        float radius = ptr[19];
 
-        int render_type = ptr[8]; // 0: only points, 1: only mesh, 2: points + mesh
-
+        // stiffness
         float stretchStiffness = ptr[5];
         float bendStiffness = ptr[6];
         float shearStiffness = ptr[7];
         int phase = NvFlexMakePhase(0, eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter);
 
-        int flip_mesh = int(ptr[18]); // Flip half
+        float total_mass = ptr[8];
+        float radius = ptr[9];
+        int render_type = ptr[10]; // 0: only points, 1: only mesh, 2: points + mesh
+        int flip_mesh = int(ptr[11]); // Flip half
 
         // Cloth
         auto verts_buf = vertices.request();
@@ -55,7 +57,7 @@ public:
         if (num_verts > 0)
         {
             // If a mesh is passed, then use passed in mesh
-            float mass = float(ptr[17]) / num_verts;
+            float mass = float(total_mass) / num_verts;
             float invMass = 1.0f / mass;
             auto lower = Vec4(initX, initY, initZ, 0);
 
@@ -119,7 +121,7 @@ public:
         }
         else
         {
-            float mass = float(ptr[17]) / (dimx * dimz); // avg bath towel is 500-700g
+            float mass = float(total_mass) / (dimx * dimz); // avg bath towel is 500-700g
             CreateSpringGrid(Vec3(initX, initY, initZ), dimx, dimz, 1, radius, phase, stretchStiffness, bendStiffness, shearStiffness, 0.0f, 1.0f / mass);
         }
         
