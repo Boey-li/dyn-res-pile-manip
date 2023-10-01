@@ -932,7 +932,7 @@ class FlexEnv(gym.Env):
                                  angle=np.pi/2.)]
         hideShape = 0
         color = np.ones(3) * 0.9
-        self.wall_shape_states = np.zeros((4, 14))
+        self.wall_shape_states = np.zeros((1, 14))
         for i, center in enumerate(centers):
             pyflex.add_box(halfEdge, center, quats[i], hideShape, color)
             self.wall_shape_states[i] = np.concatenate([center, center, quats[i], quats[i]])

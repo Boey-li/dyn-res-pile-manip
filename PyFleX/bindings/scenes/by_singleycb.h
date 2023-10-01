@@ -79,19 +79,12 @@ public:
 			make_path(path, "/data/ycb/36_wood_block.obj");
 		else if (type == 37)
 			make_path(path, "/data/ycb/37_scissors.obj");
-
+		
 		// void CreateParticleShape(const Mesh* srcMesh, 
 		// Vec3 lower, Vec3 scale, float rotation, float spacing, 
 		// Vec3 velocity, float invMass, bool rigid, float rigidStiffness, 
 		// int phase, bool skin, float jitter=0.005f, Vec3 skinOffset=0.0f, 
 		// float skinExpand=0.0f, Vec4 color=Vec4(0.0f), float springStiffness=0.0f, bool texture=false)
-		// CreateParticleShape(
-		//         GetFilePathByPlatform(table_path).c_str(),
-		// 		Vec3(0, 0, 0),
-		// 		5., 0.0f, s, Vec3(0.0f, 0.0f, 0.0f), 
-		// 		m, true, 1.0f, NvFlexMakePhase(group++, 0), true, 0.0f,
-		// 		0.0f, 0.0f, Vec4(0.29f, 0.17f, 0.16f, 1.0f), 0.0f, false);
-		
 		CreateParticleShape(
 		        GetFilePathByPlatform(path).c_str(),
 				Vec3(x, y, z),
@@ -99,20 +92,19 @@ public:
 				m, true, 1.0f, NvFlexMakePhase(group++, 0), true, 0.0f,
 				0.0f, 0.0f, Vec4(0.0f), 0.0f, true);
 
-
 		g_params.radius = radius;
 		g_params.fluidRestDistance = radius;
 		g_params.numIterations = 4;
-		g_params.viscosity = 1.0f;
+		g_params.viscosity = 0.0f;
 		g_params.dynamicFriction = 1.0f;
 		g_params.staticFriction = 0.0f;
-		g_params.particleCollisionMargin = 0.0f;
+		g_params.particleCollisionMargin = 1.0f;
 		g_params.collisionDistance = g_params.fluidRestDistance*0.5f;
 		g_params.vorticityConfinement = 120.0f;
 		g_params.cohesion = 0.0025f;
 		g_params.drag = 0.06f;
 		g_params.lift = 0.f;
-		g_params.solidPressure = 0.0f;
+		g_params.solidPressure = 1.0f;
 		g_params.smoothing = 1.0f;
 		g_params.relaxationFactor = 1.0f;
 

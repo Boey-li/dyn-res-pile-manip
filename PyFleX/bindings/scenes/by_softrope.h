@@ -127,6 +127,7 @@ public:
 
         int draw_mesh = (int) ptr[9];
 		Vec3 scale = Vec3(ptr[0], ptr[1], ptr[2]);
+		Vec3 trans = Vec3(ptr[3], ptr[4], ptr[5]);
 		float clusterSpacing = ptr[6];
 		float clusterRadius = ptr[7];
 		float clusterStiffness = ptr[8];
@@ -134,6 +135,7 @@ public:
 		char rope_path[100];
 		Instance rope(make_path(rope_path, "/data/rope.obj"));
 		rope.mScale = scale;
+		rope.mTranslation = trans;
 		rope.mClusterSpacing = clusterSpacing;
 		rope.mClusterRadius = clusterRadius;
 		rope.mClusterStiffness = clusterStiffness;
