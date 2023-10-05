@@ -2850,6 +2850,7 @@ void pyflex_init(bool headless=false) {
     // StartGpuWork();
     // Init(g_scene);
     // EndGpuWork();
+    printf("Pyflex init done\n");
 }
 
 void pyflex_clean() {
@@ -3845,7 +3846,16 @@ PYBIND11_MODULE(pyflex, m) {
     m.def("main", &main);
 
     m.def("init", &pyflex_init);
-    m.def("set_scene", &pyflex_set_scene);
+    // m.def("set_scene", &pyflex_set_scene);
+    m.def("set_scene", &pyflex_set_scene,
+          py::arg("scene_idx") = 0,
+          py::arg("scene_params") = py::array_t<float>(),
+          py::arg("vertices") = py::array_t<float>(),
+          py::arg("stretch_edges") = py::array_t<int>(),
+          py::arg("bend_edges") = py::array_t<int>(),
+          py::arg("shear_edges") = py::array_t<int>(),
+          py::arg("faces") = py::array_t<int>(),
+          py::arg("thread_idx") = 0);
     m.def("clean", &pyflex_clean);
     
     m.def("step", &pyflex_step,

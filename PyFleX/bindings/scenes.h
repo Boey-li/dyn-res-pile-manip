@@ -101,7 +101,7 @@ public:
 #include "scenes/by_softrope.h" //26
 #include "scenes/by_cloth.h" //27
 #include "scenes/by_multiycb.h" //28
-#include "scenes/softgym_cloth.h" //29
+#include "scenes/by_softgym_cloth.h" //29
 #include "scenes/softgym_cloth_2.h" //30
 
 #include "scenes/adhesion.h"

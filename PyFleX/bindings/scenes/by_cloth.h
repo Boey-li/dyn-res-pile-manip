@@ -5,7 +5,13 @@ public:
 
 	by_Cloth(const char* name) : Scene(name) {}
 
-	void Initialize(py::array_t<float> scene_params, int thread_idx = 0)
+	void Initialize(py::array_t<float> scene_params, 
+                    py::array_t<float> vertices,
+                    py::array_t<int> stretch_edges,
+                    py::array_t<int> bend_edges,
+                    py::array_t<int> shear_edges,
+                    py::array_t<int> faces,
+                    int thread_idx = 0)
 	{
         auto ptr = (float *) scene_params.request().ptr;
 
@@ -103,41 +109,41 @@ public:
 	int ctrl_pts[8], g_ctrl = -1;
     float invMass = 1.0f;
 
-	void Update(py::array_t<float> update_params)
-	{
-        if (g_ctrl != -1) {
-		    g_buffers->positions[g_ctrl].w = invMass;
-            g_ctrl = -1;
-        }
+	// void Update(py::array_t<float> update_params)
+	// {
+    //     if (g_ctrl != -1) {
+	// 	    g_buffers->positions[g_ctrl].w = invMass;
+    //         g_ctrl = -1;
+    //     }
 
-	    // update wind
-		const Vec3 kWindDir = Vec3(0.0f, 0.0f, -1.0f);
-		Vec3 wind = g_windStrength*kWindDir;
+	//     // update wind
+	// 	const Vec3 kWindDir = Vec3(0.0f, 0.0f, -1.0f);
+	// 	Vec3 wind = g_windStrength*kWindDir;
 				
-		g_params.wind[0] = wind.x;
-		g_params.wind[1] = wind.y;
-		g_params.wind[2] = wind.z;
+	// 	g_params.wind[0] = wind.x;
+	// 	g_params.wind[1] = wind.y;
+	// 	g_params.wind[2] = wind.z;
 
-        // update action
-        auto ptr = (float *) update_params.request().ptr;
+    //     // update action
+    //     auto ptr = (float *) update_params.request().ptr;
 
-        int ctrl_idx = ptr[0];
-        float dx = ptr[1];
-	    float dy = ptr[2];
-	    float dz = ptr[3];
+    //     int ctrl_idx = ptr[0];
+    //     float dx = ptr[1];
+	//     float dy = ptr[2];
+	//     float dz = ptr[3];
 
-        int c = ctrl_pts[ctrl_idx];
+    //     int c = ctrl_pts[ctrl_idx];
 
-	    g_buffers->positions[c].x += dx;
-	    g_buffers->positions[c].y += dy;
-	    g_buffers->positions[c].z += dz;
+	//     g_buffers->positions[c].x += dx;
+	//     g_buffers->positions[c].y += dy;
+	//     g_buffers->positions[c].z += dz;
 
-	    g_buffers->velocities[c].x = dx / g_dt;
-        g_buffers->velocities[c].y = dy / g_dt;
-        g_buffers->velocities[c].z = dz / g_dt;
+	//     g_buffers->velocities[c].x = dx / g_dt;
+    //     g_buffers->velocities[c].y = dy / g_dt;
+    //     g_buffers->velocities[c].z = dz / g_dt;
 
-		g_buffers->positions[c].w = 0.0f;
-        g_ctrl = c;
-	}
+	// 	g_buffers->positions[c].w = 0.0f;
+    //     g_ctrl = c;
+	// }
 };
 

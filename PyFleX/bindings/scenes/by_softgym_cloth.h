@@ -45,11 +45,16 @@ public:
         float bendStiffness = ptr[6];
         float shearStiffness = ptr[7];
         int phase = NvFlexMakePhase(0, eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter);
+        // int phase = NvFlexMakePhase(0, eNvFlexPhaseSelfCollide);
 
         float total_mass = ptr[8];
         float radius = ptr[9];
         int render_type = ptr[10]; // 0: only points, 1: only mesh, 2: points + mesh
         int flip_mesh = int(ptr[11]); // Flip half
+
+        float dynamicFriction = ptr[12];
+        float staticFriction = ptr[13];
+        float particleFriction = ptr[14];
 
         // Cloth
         auto verts_buf = vertices.request();
@@ -61,9 +66,7 @@ public:
             float invMass = 1.0f / mass;
             auto lower = Vec4(initX, initY, initZ, 0);
 
-            int baseIndex = int(g_buffers->positions.size());
-            // printf("baseIndex: %d\n", baseIndex); // 0
-
+            int baseIndex = int(g_buffers->positions.size()); // 0
             Vec3 velocity = Vec3(0, 0, 0);
 
             auto verts_ptr = (float *)verts_buf.ptr;
@@ -141,28 +144,39 @@ public:
                 }
         }
 
-        g_numSubsteps = 2; //4
-        // g_params.numIterations = 30;
-        g_params.numIterations = 4;
+        // add tethers
+		// for (int i=0; i < int(g_buffers->positions.size()); ++i)
+		// {
+		// 	g_buffers->velocities[i] = RandomUnitVector()*0.1f; //?
+		// } 
+        
+        // set parameters
+        g_params.dynamicFriction = dynamicFriction;
+        g_params.staticFriction = staticFriction;
+        g_params.particleFriction = particleFriction;
 
-        g_params.dynamicFriction = 0.75f;
-        g_params.particleFriction = 1.0f;
+        g_numSubsteps = 4; //2
+        g_params.numIterations = 30; // 4
+        g_params.radius = radius * 1.8f;
+
         g_params.damping = 1.0f;
         g_params.sleepThreshold = 0.02f;
+        
+        // g_params.dissipation = 0.0f;
+        // g_params.drag = 0.06f;
 
         g_params.relaxationFactor = 1.0f;
+
         g_params.shapeCollisionMargin = 0.04f;
-
-        g_sceneLower = Vec3(-1.0f);
-        g_sceneUpper = Vec3(1.0f);
-        g_drawPoints = false;
-
-        g_params.radius = radius * 1.8f;
         g_params.collisionDistance = 0.005f;
 
         g_drawPoints = render_type & 1;
         g_drawCloth = (render_type & 2) >> 1;
         g_drawSprings = false;
+
+        // g_windFrequency *= 2.0f;
+		// g_windStrength = 0.0f;
+
     }
 
 };
