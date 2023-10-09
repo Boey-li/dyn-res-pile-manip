@@ -143,12 +143,6 @@ public:
                         swap(g_buffers->triangles[idx * 3 * 2 + 3], g_buffers->triangles[idx * 3 * 2 + 4]);
                 }
         }
-
-        // add tethers
-		// for (int i=0; i < int(g_buffers->positions.size()); ++i)
-		// {
-		// 	g_buffers->velocities[i] = RandomUnitVector()*0.1f; //?
-		// } 
         
         // set parameters
         g_params.dynamicFriction = dynamicFriction;

@@ -56,19 +56,6 @@ def gen_data(info):
 
         actions = np.zeros((n_timestep, action_dim))
 
-        # execute the first action to perturb the system
-        # if obj == 'ball':
-        #     action = None
-        #     init_u = np.array([env.init_x + 1.2 * (np.random.randint(0, 2) - 0.6),
-        #                     -env.init_z - 1.2 * (np.random.randint(0, 2) - 0.6),
-        #                     env.init_x,
-        #                     -env.init_z])
-        #     action = init_u
-        #     img = env.step(action)
-        #     if img is None:
-        #         print('rerun episode %d' % idx_episode)
-        #         continue
-        
         img = env.render()
         img[:, :, :3][img[:, :, -1] > 0.599/0.8 * global_scale] = np.ones(3) * 255.
         cv2.imwrite(os.path.join(epi_dir, '0_color.png'), img[:, :, :3][..., ::-1])

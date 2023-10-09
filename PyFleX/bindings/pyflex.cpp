@@ -3079,6 +3079,37 @@ py::array_t<float> pyflex_get_positions() {
     return positions;
 }
 
+py::array_t<int> pyflex_get_edges()
+{
+    g_buffers->springIndices.map();
+    auto edges = py::array_t<int>((size_t)g_buffers->springIndices.size());
+    auto ptr = (int *)edges.request().ptr;
+
+    for (size_t i = 0; i < (size_t)g_buffers->springIndices.size(); i++)
+    {
+        ptr[i] = g_buffers->springIndices[i];
+    }
+
+    g_buffers->springIndices.unmap();
+
+    return edges;
+}
+
+py::array_t<int> pyflex_get_faces()
+{
+    g_buffers->triangles.map();
+    auto triangles = py::array_t<int>((size_t)g_buffers->triangles.size());
+    auto ptr = (int *)triangles.request().ptr;
+
+    for (size_t i = 0; i < (size_t)g_buffers->triangles.size(); i++)
+    {
+        ptr[i] = g_buffers->triangles[i];
+    }
+
+    g_buffers->triangles.unmap();
+    return triangles;
+}
+
 void pyflex_set_positions(py::array_t<float> positions) {
     g_buffers->positions.map();
 
@@ -3882,6 +3913,10 @@ PYBIND11_MODULE(pyflex, m) {
 
     m.def("get_positions", &pyflex_get_positions, "Get particle positions");
     m.def("set_positions", &pyflex_set_positions, "Set particle positions");
+
+    m.def("get_edges", &pyflex_get_edges, "Get mesh edges");
+    m.def("get_faces", &pyflex_get_faces, "Get mesh faces");
+
     m.def("get_restPositions", &pyflex_get_restPositions, "Get particle restPositions");
     m.def("get_rigidOffsets", &pyflex_get_rigidOffsets, "Get rigid offsets");
     m.def("get_rigidIndices", &pyflex_get_rigidIndices, "Get rigid indices");
