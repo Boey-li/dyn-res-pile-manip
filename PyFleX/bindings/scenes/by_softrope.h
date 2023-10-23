@@ -125,12 +125,37 @@ public:
 	{
 		auto ptr = (float *) scene_params.request().ptr;
 
-        int draw_mesh = (int) ptr[9];
 		Vec3 scale = Vec3(ptr[0], ptr[1], ptr[2]);
 		Vec3 trans = Vec3(ptr[3], ptr[4], ptr[5]);
-		float clusterSpacing = ptr[6];
-		float clusterRadius = ptr[7];
-		float clusterStiffness = ptr[8];
+		
+		float radius = ptr[6];
+		mRadius = radius;
+		
+		float clusterSpacing = ptr[7];
+		float clusterRadius = ptr[8];
+		float clusterStiffness = ptr[9];
+
+		float linkRadius = ptr[10];
+		float linkStiffness = ptr[11];
+
+		float globalStiffness = ptr[12];
+
+		float surfaceSampling = ptr[13];
+		float volumeSampling = ptr[14];
+
+		float skinningFalloff = ptr[15];
+		float skinningMaxDistance = ptr[16];
+
+		float clusterPlasticThreshold = ptr[17];
+		float clusterPlasticCreep = ptr[18];
+		
+		float dynamicFriction = ptr[19];
+		float particleFrinction = ptr[20];
+		
+		int draw_mesh = (int) ptr[21];
+
+		float relaxtion_factor = ptr[22];
+		mRelaxationFactor = relaxtion_factor;
 
 		char rope_path[100];
 		Instance rope(make_path(rope_path, "/data/rope.obj"));
@@ -139,18 +164,26 @@ public:
 		rope.mClusterSpacing = clusterSpacing;
 		rope.mClusterRadius = clusterRadius;
 		rope.mClusterStiffness = clusterStiffness;
+		rope.mLinkRadius = linkRadius;
+		rope.mLinkStiffness = linkStiffness;
+		rope.mGlobalStiffness = globalStiffness;
+		rope.mSurfaceSampling = surfaceSampling;
+		rope.mVolumeSampling = volumeSampling;
+		rope.mSkinningFalloff = skinningFalloff;
+		rope.mSkinningMaxDistance = skinningMaxDistance;
+		rope.mClusterPlasticThreshold = clusterPlasticThreshold;
+		rope.mClusterPlasticCreep = clusterPlasticCreep;
 		AddInstance(rope);
-
-		float radius = mRadius;
+		std::cout << rope.mClusterSpacing << std::endl;
 
 		// no fluids or sdf based collision
 		g_solverDesc.featureMode = eNvFlexFeatureModeSimpleSolids;
 
 		g_params.radius = radius;
-		g_params.dynamicFriction = 0.35f;
-		g_params.particleFriction = 0.25f;
+		g_params.dynamicFriction = dynamicFriction;
+		g_params.particleFriction = particleFrinction;
 		g_params.numIterations = 4;
-		g_params.collisionDistance = radius*0.75f;
+		g_params.collisionDistance = 0.1*0.75f;
 
 		g_params.relaxationFactor = mRelaxationFactor;
 
@@ -182,7 +215,7 @@ public:
 				g_buffers->positions[i].w = 0.0f;
 
 		// expand radius for better self collision
-		g_params.radius *= 1.5f;
+		// g_params.radius *= 1.5f;
 
 		g_lightDistance *= 1.5f;
 	}
@@ -379,24 +412,5 @@ public:
 		}
 	}
 
-	void Update(py::array_t<float> update_params)
-	{
-        // update action
-		auto params = update_params.request();
-        auto ptr = (float *) params.ptr;
-        int size = params.size;
-
-        float dx = ptr[0];
-        float dz = ptr[1];
-
-        for (int i = 2; i < size; i++) {
-        	int idx = (int) ptr[i];
-
-        	g_buffers->positions[idx].x += dx;
-        	g_buffers->positions[idx].z += dz;
-        	g_buffers->velocities[idx].x = dx / g_dt;
-        	g_buffers->velocities[idx].z = dz / g_dt;
-        }
-	}
 };
 

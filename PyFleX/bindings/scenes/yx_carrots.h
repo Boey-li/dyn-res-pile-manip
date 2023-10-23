@@ -42,6 +42,7 @@ public:
 		float sing_y = ptr[17];
 		float sing_z = ptr[18];
 		float add_noise_ft = ptr[19];
+		float radius = ptr[20];
 		
 		float pos_noise = pos_diff*0.5f;
 		int draw_skin = (int) draw_skin_ft;
@@ -53,7 +54,7 @@ public:
 		bool add_noise = (bool) add_noise_ft;
 
         // granular pile
-		float radius = 0.075f;
+		// float radius = 0.075f;
 
 		// float pos_diff = 2.0*scale;
 		int group = 0;

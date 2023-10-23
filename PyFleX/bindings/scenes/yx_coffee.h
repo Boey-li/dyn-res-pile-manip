@@ -28,12 +28,13 @@ public:
         float dFriction = ptr[5];
 		float draw_skin_ft = ptr[6];
 		float num_coffee_ft = ptr[7];
+		float radius = ptr[8];
 		
 		int draw_skin = (int) draw_skin_ft;
 		int num_coffee = (int) num_coffee_ft;
 
         // granular pile
-		float radius = 0.075f;
+		// float radius = 0.075f;
 
         char path[1000];
 		make_path(path, "/data/coffee_bean.ply");

@@ -26,16 +26,20 @@ public:
 		float z = ptr[2];
 		float scale = ptr[3];
 		int type = ptr[4];
+		int draw_mesh = ptr[5];
+		
+		float radius = ptr[6];
+		float mass = ptr[7];
+		float rigidStiffness = ptr[8]; //1.0
+		float dynamicFriction = ptr[9]; //1.0
+		float staticFriction = ptr[10]; //0.0
+		float viscosity = ptr[11]; //0.0
 
-		float radius = 0.1f;
+		float invMass = 1.0f/mass; //0.25
 		int group = 0;
-
 		float s = radius*0.5f;
-		float m = 0.25f;
 
 		char path[100];
-		// char table_path[100];
-		// make_path(table_path, "/data/table.obj");
 
 		if (type == 3)
 			make_path(path, "/data/ycb/03_cracker_box.obj");
@@ -89,15 +93,15 @@ public:
 		        GetFilePathByPlatform(path).c_str(),
 				Vec3(x, y, z),
 				scale, 0.0f, s, Vec3(0.0f, 0.0f, 0.0f), 
-				m, true, 1.0f, NvFlexMakePhase(group++, 0), true, 0.0f,
+				invMass, true, rigidStiffness, NvFlexMakePhase(group++, 0), true, 0.0f,
 				0.0f, 0.0f, Vec4(0.0f), 0.0f, true);
 
 		g_params.radius = radius;
 		g_params.fluidRestDistance = radius;
 		g_params.numIterations = 4;
-		g_params.viscosity = 0.0f;
-		g_params.dynamicFriction = 1.0f;
-		g_params.staticFriction = 0.0f;
+		g_params.viscosity = viscosity;
+		g_params.dynamicFriction = dynamicFriction;
+		g_params.staticFriction = staticFriction;
 		g_params.particleCollisionMargin = 1.0f;
 		g_params.collisionDistance = g_params.fluidRestDistance*0.5f;
 		g_params.vorticityConfinement = 120.0f;
@@ -110,9 +114,15 @@ public:
 
 		g_numSubsteps = 2;
 
-		g_drawMesh = true;
-		g_drawPoints = false;
-		g_drawSprings = false;
+		if (draw_mesh) {
+			g_drawMesh = true;
+			g_drawPoints = false;
+			g_drawSprings = false;
+		} else {
+			g_drawMesh = false;
+			g_drawPoints = true;
+			g_drawSprings = false;
+		};
 	}
 	
 };
