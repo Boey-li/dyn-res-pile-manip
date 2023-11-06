@@ -104,6 +104,9 @@ public:
 #include "scenes/by_softgym_cloth.h" //29
 #include "scenes/softgym_cloth_2.h" //30
 
+#include "scenes/by_roperigid.h" //31
+#include "scenes/by_rigidgranular.h" //32
+
 #include "scenes/adhesion.h"
 #include "scenes/armadilloshower.h" 
 #include "scenes/bananas.h"

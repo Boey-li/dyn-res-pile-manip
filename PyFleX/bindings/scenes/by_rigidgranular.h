@@ -1,8 +1,8 @@
-class by_SingleYCB : public Scene
+class by_RigidGranular: public Scene
 {
 public:
 
-	by_SingleYCB(const char* name) : Scene(name) {}
+	by_RigidGranular(const char* name) : Scene(name) {}
 
 	char* make_path(char* full_path, std::string path) {
 		strcpy(full_path, getenv("PYFLEXROOT"));
@@ -34,8 +34,6 @@ public:
 		float dynamicFriction = ptr[9]; //1.0
 		float staticFriction = ptr[10]; //0.0
 		float viscosity = ptr[11]; //0.0
-		float rotation = ptr[12]; //0.0
-		float springStiffness = ptr[13]; //0.0
 
 		float invMass = 1.0f/mass; //0.25
 		int group = 0;
@@ -96,44 +94,33 @@ public:
 		CreateParticleShape(
 		        GetFilePathByPlatform(path).c_str(),
 				Vec3(x, y, z),
-				scale, rotation, s, Vec3(0.0f, 0.0f, 0.0f), 
+				scale, 0.0f, s, Vec3(0.0f, 0.0f, 0.0f), 
 				invMass, true, rigidStiffness, NvFlexMakePhase(group++, 0), true, 0.0f,
-				0.0f, 0.0f, Vec4(0.0f), springStiffness, true);
-
-		// float restDistance = radius*0.55f;
-
-		// g_numSolidParticles = g_buffers->positions.size();
-		// g_numSubsteps = 2;
-
-		// g_params.radius = radius;
-		// g_params.dynamicFriction = dynamicFriction;
-		// g_params.staticFriction = staticFriction;
-		// g_params.viscosity = viscosity;
-		// g_params.numIterations = 4;
-		// g_params.vorticityConfinement = 40.0f;
-		// g_params.fluidRestDistance = restDistance;
-		// g_params.solidPressure = 0.f;
-		// g_params.relaxationFactor = 0.0f;
-		// g_params.cohesion = 0.02f;
-		// g_params.collisionDistance = 0.01f;
-		// // g_params.restitution = restitution;
-		// g_maxDiffuseParticles = 0;
-		// g_diffuseScale = 0.5f;
-
-		// Emitter e1;
-		// e1.mDir = Vec3(1.0f, 0.0f, 0.0f);
-		// e1.mRight = Vec3(0.0f, 0.0f, -1.0f);
-		// e1.mPos = Vec3(radius, 1.f, 0.65f);
-		// e1.mSpeed = (restDistance/g_dt)*2.0f; // 2 particle layers per-frame
-		// e1.mEnabled = true;
-
-		// g_emitters.push_back(e1);
-
-		// g_waveFloorTilt = 0.0f;
-		// g_waveFrequency = 1.5f;
-		// g_waveAmplitude = 2.0f;
+				0.0f, 0.0f, Vec4(0.0f), 0.0f, true);
 		
-		// g_warmup = false;
+		// add carrots
+		int num_x = ptr[12];
+		int num_y = ptr[13];
+		int num_z = ptr[14];
+		float granular_scale = ptr[15];
+		float pos_x = ptr[16];
+		float pos_y = ptr[17];
+		float pos_z = ptr[18];
+		float granular_dis = ptr[19];
+
+		float pos_diff = granular_scale + granular_dis;
+
+		// int num_planes = Rand(6,12);
+		// Mesh* m = CreateRandomConvexMesh(num_planes, 5.0f, 10.0f);
+		for (int x_idx = 0; x_idx < num_x; x_idx++){
+			for (int z_idx = 0; z_idx < num_z; z_idx++) {
+				int num_planes = Rand(6,12);
+				Mesh* m = CreateRandomConvexMesh(num_planes, 5.0f, 10.0f);
+				CreateParticleShape(m, Vec3(pos_x + float(x_idx) * pos_diff, pos_y, pos_z + float(z_idx) * pos_diff), 0.1f, 0.0f, 
+									radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 
+									0.0f, Vec4(237.0f/255.0f, 145.0f/255.0f, 33.0f/255.0f, 1.0f));	
+			}
+		}
 
 		float restDistance = radius*0.55f;
 

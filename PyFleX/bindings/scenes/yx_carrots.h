@@ -1,5 +1,3 @@
-
-
 class yx_Carrots: public Scene
 {
 public:

@@ -1,8 +1,8 @@
-class by_SoftRope: public Scene
+class by_RopeRigid: public Scene
 {
 
 public:
-	by_SoftRope(const char* name) :
+	by_RopeRigid(const char* name) :
 		Scene(name),
 		mRadius(0.1f),
 		mRelaxationFactor(1.0f),
@@ -163,6 +163,22 @@ public:
 
 		float collisionDistance = ptr[27];
 
+        // rigid object
+        float x = 0.0f;
+        float y = 0.0f;
+        float z = 0.0f;
+        float size = 1.0f;
+        float s = radius*0.5f;
+        
+        float mass = 1.0f;
+        float invMass = 1.0f/mass;
+        float rigidStiffness = 1.0f;
+        int group = 0;
+        
+        char rigid_path[100];
+        make_path(rigid_path, "/data/ycb/06_mustard_bottle.obj");
+
+        // rope
 		char rope_path[100];
 		Instance rope(make_path(rope_path, "/data/rope.obj"));
 		rope.mScale = scale;
@@ -210,20 +226,32 @@ public:
 
 		// build soft bodies 
 		// for (int i = 0; i < int(mInstances.size()); i++)
+        printf("Creating soft\n");
 		CreateSoftBody(mInstances[0], mRenderingInstances.size());
 
-		if (mPlinth) 
-			AddPlinth();
+        printf("Creating rigid\n");
+        CreateParticleShape(
+		        GetFilePathByPlatform(rigid_path).c_str(),
+				Vec3(x, y, z),
+				size, 0.0f, s, Vec3(0.0f, 0.0f, 0.0f), 
+				invMass, true, rigidStiffness, NvFlexMakePhase(group++, 0), true, 0.0f,
+				0.0f, 0.0f, Vec4(0.0f), 0.0f, true);
+
+		// if (mPlinth) 
+		// 	AddPlinth();
 
 		// fix any particles below the ground plane in place
-		for (int i = 0; i < int(g_buffers->positions.size()); ++i)
-			if (g_buffers->positions[i].y < 0.4f)
-				g_buffers->positions[i].w = 0.0f;
+		// for (int i = 0; i < int(g_buffers->positions.size()); ++i)
+		// 	if (g_buffers->positions[i].y < 0.4f)
+		// 		g_buffers->positions[i].w = 0.0f;
+        printf("Debug");
 
 		// expand radius for better self collision
-		g_params.radius *= 1.5f;
+		// g_params.radius *= 1.5f;
 
 		g_lightDistance *= 1.5f;
+        printf("Debug");
+
 	}
 
 	void CreateSoftBody(Instance instance, int group = 0, bool texture=false)
@@ -376,52 +404,52 @@ public:
 		mRenderingInstances.push_back(renderingInstance);
 	}
 
-	virtual void Draw(int pass)
-	{
-		if (!g_drawMesh)
-			return;
+	// virtual void Draw(int pass)
+	// {
+	// 	if (!g_drawMesh)
+	// 		return;
 
-		for (int s = 0; s < int(mRenderingInstances.size()); ++s)
-		{
-			const RenderingInstance& instance = mRenderingInstances[s];
+	// 	for (int s = 0; s < int(mRenderingInstances.size()); ++s)
+	// 	{
+	// 		const RenderingInstance& instance = mRenderingInstances[s];
 
-			Mesh m;
-			m.m_positions.resize(instance.mMesh->m_positions.size());
-			m.m_normals.resize(instance.mMesh->m_normals.size());
-			m.m_indices = instance.mMesh->m_indices;
+	// 		Mesh m;
+	// 		m.m_positions.resize(instance.mMesh->m_positions.size());
+	// 		m.m_normals.resize(instance.mMesh->m_normals.size());
+	// 		m.m_indices = instance.mMesh->m_indices;
 
-			for (int i = 0; i < int(instance.mMesh->m_positions.size()); ++i)
-			{
-				Vec3 softPos;
-				Vec3 softNormal;
+	// 		for (int i = 0; i < int(instance.mMesh->m_positions.size()); ++i)
+	// 		{
+	// 			Vec3 softPos;
+	// 			Vec3 softNormal;
 
-				for (int w = 0; w < 4; ++w)
-				{
-					const int cluster = instance.mSkinningIndices[i * 4 + w];
-					const float weight = instance.mSkinningWeights[i * 4 + w];
+	// 			for (int w = 0; w < 4; ++w)
+	// 			{
+	// 				const int cluster = instance.mSkinningIndices[i * 4 + w];
+	// 				const float weight = instance.mSkinningWeights[i * 4 + w];
 
-					if (cluster > -1)
-					{
-						// offset in the global constraint array
-						int rigidIndex = cluster + instance.mOffset;
+	// 				if (cluster > -1)
+	// 				{
+	// 					// offset in the global constraint array
+	// 					int rigidIndex = cluster + instance.mOffset;
 
-						Vec3 localPos = Vec3(instance.mMesh->m_positions[i]) - instance.mRigidRestPoses[cluster];
+	// 					Vec3 localPos = Vec3(instance.mMesh->m_positions[i]) - instance.mRigidRestPoses[cluster];
 
-						Vec3 skinnedPos = g_buffers->rigidTranslations[rigidIndex] + Rotate(g_buffers->rigidRotations[rigidIndex], localPos);
-						Vec3 skinnedNormal = Rotate(g_buffers->rigidRotations[rigidIndex], instance.mMesh->m_normals[i]);
+	// 					Vec3 skinnedPos = g_buffers->rigidTranslations[rigidIndex] + Rotate(g_buffers->rigidRotations[rigidIndex], localPos);
+	// 					Vec3 skinnedNormal = Rotate(g_buffers->rigidRotations[rigidIndex], instance.mMesh->m_normals[i]);
 
-						softPos += skinnedPos*weight;
-						softNormal += skinnedNormal*weight;
-					}
-				}
+	// 					softPos += skinnedPos*weight;
+	// 					softNormal += skinnedNormal*weight;
+	// 				}
+	// 			}
 
-				m.m_positions[i] = Point3(softPos);
-				m.m_normals[i] = softNormal;
-			}
+	// 			m.m_positions[i] = Point3(softPos);
+	// 			m.m_normals[i] = softNormal;
+	// 		}
 
-			DrawMesh(&m, instance.mColor);
-		}
-	}
+	// 		DrawMesh(&m, instance.mColor);
+	// 	}
+	// }
 
 };
 

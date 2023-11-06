@@ -541,15 +541,6 @@ inline float sqr(float x) { return x*x; }
 
 void InitRenderHeadless(const RenderInitOptions& options, int width, int height); //add
 
-// virtual void Initialize(
-// 				py::array_t<float> scene_params, 
-// 				py::array_t<float> vertices,
-// 				py::array_t<int> stretch_edges,
-// 				py::array_t<int> bend_edges,
-// 				py::array_t<int> shear_edges,
-// 				py::array_t<int> faces, 
-// 				int thread_idx = 0){};
-
 void Init(int scene, py::array_t<float> scene_params, 
         py::array_t<float> vertices, py::array_t<int> stretch_edges,
         py::array_t<int> bend_edges, py::array_t<int> shear_edges, py::array_t<int> faces,
@@ -2529,6 +2520,9 @@ void pyflex_init(bool headless=false) {
     g_scenes.push_back(new by_MultiYCB("Multi YCB")); //28
     g_scenes.push_back(new SoftgymCloth("Softgym Flag Cloth")); //29
     g_scenes.push_back(new SoftgymCloth2("Softgym Cloth")); //30
+
+    g_scenes.push_back(new by_RopeRigid("Rope Rigid")); //31
+    g_scenes.push_back(new by_RigidGranular("Rigid Granular")); //32
 
 
     /*
