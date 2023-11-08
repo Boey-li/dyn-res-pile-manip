@@ -34,6 +34,7 @@ public:
 		float dynamicFriction = ptr[9]; //1.0
 		float staticFriction = ptr[10]; //0.0
 		float viscosity = ptr[11]; //0.0
+		float rotation = ptr[20]; //0.0
 
 		float invMass = 1.0f/mass; //0.25
 		int group = 0;
@@ -85,6 +86,8 @@ public:
 			make_path(path, "/data/ycb/36_wood_block.obj");
 		else if (type == 37)
 			make_path(path, "/data/ycb/37_scissors.obj");
+		else if (type == 38)
+			make_path(path, "/data/rigid/wiper.obj");
 		
 		// void CreateParticleShape(const Mesh* srcMesh, 
 		// Vec3 lower, Vec3 scale, float rotation, float spacing, 
@@ -94,7 +97,7 @@ public:
 		CreateParticleShape(
 		        GetFilePathByPlatform(path).c_str(),
 				Vec3(x, y, z),
-				scale, 0.0f, s, Vec3(0.0f, 0.0f, 0.0f), 
+				scale, rotation, s, Vec3(0.0f, 0.0f, 0.0f), 
 				invMass, true, rigidStiffness, NvFlexMakePhase(group++, 0), true, 0.0f,
 				0.0f, 0.0f, Vec4(0.0f), 0.0f, true);
 		
@@ -114,11 +117,13 @@ public:
 		// Mesh* m = CreateRandomConvexMesh(num_planes, 5.0f, 10.0f);
 		for (int x_idx = 0; x_idx < num_x; x_idx++){
 			for (int z_idx = 0; z_idx < num_z; z_idx++) {
+				for (int y_idx = 0; y_idx < num_y; y_idx++) {
 				int num_planes = Rand(6,12);
 				Mesh* m = CreateRandomConvexMesh(num_planes, 5.0f, 10.0f);
-				CreateParticleShape(m, Vec3(pos_x + float(x_idx) * pos_diff, pos_y, pos_z + float(z_idx) * pos_diff), 0.1f, 0.0f, 
+				CreateParticleShape(m, Vec3(pos_x + float(x_idx) * pos_diff, pos_y + float(y_idx) * pos_diff, pos_z + float(z_idx) * pos_diff), 0.1f, 0.0f, 
 									radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 
 									0.0f, Vec4(237.0f/255.0f, 145.0f/255.0f, 33.0f/255.0f, 1.0f));	
+				}
 			}
 		}
 

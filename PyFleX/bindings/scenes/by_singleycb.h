@@ -100,41 +100,6 @@ public:
 				invMass, true, rigidStiffness, NvFlexMakePhase(group++, 0), true, 0.0f,
 				0.0f, 0.0f, Vec4(0.0f), springStiffness, true);
 
-		// float restDistance = radius*0.55f;
-
-		// g_numSolidParticles = g_buffers->positions.size();
-		// g_numSubsteps = 2;
-
-		// g_params.radius = radius;
-		// g_params.dynamicFriction = dynamicFriction;
-		// g_params.staticFriction = staticFriction;
-		// g_params.viscosity = viscosity;
-		// g_params.numIterations = 4;
-		// g_params.vorticityConfinement = 40.0f;
-		// g_params.fluidRestDistance = restDistance;
-		// g_params.solidPressure = 0.f;
-		// g_params.relaxationFactor = 0.0f;
-		// g_params.cohesion = 0.02f;
-		// g_params.collisionDistance = 0.01f;
-		// // g_params.restitution = restitution;
-		// g_maxDiffuseParticles = 0;
-		// g_diffuseScale = 0.5f;
-
-		// Emitter e1;
-		// e1.mDir = Vec3(1.0f, 0.0f, 0.0f);
-		// e1.mRight = Vec3(0.0f, 0.0f, -1.0f);
-		// e1.mPos = Vec3(radius, 1.f, 0.65f);
-		// e1.mSpeed = (restDistance/g_dt)*2.0f; // 2 particle layers per-frame
-		// e1.mEnabled = true;
-
-		// g_emitters.push_back(e1);
-
-		// g_waveFloorTilt = 0.0f;
-		// g_waveFrequency = 1.5f;
-		// g_waveAmplitude = 2.0f;
-		
-		// g_warmup = false;
-
 		float restDistance = radius*0.55f;
 
 		g_numSolidParticles = g_buffers->positions.size();
