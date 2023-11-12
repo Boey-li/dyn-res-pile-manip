@@ -106,6 +106,7 @@ public:
 
 #include "scenes/by_roperigid.h" //31
 #include "scenes/by_rigidgranular.h" //32
+#include "scenes/by_rigidcloth.h" //33
 
 #include "scenes/adhesion.h"
 #include "scenes/armadilloshower.h" 
