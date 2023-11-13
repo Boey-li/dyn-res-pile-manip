@@ -1,13 +1,12 @@
-class by_RigidRope: public Scene
+class by_RigidRope2: public Scene
 {
-
 public:
-	by_RigidRope(const char* name) :
-		Scene(name),
+
+	by_RigidRope2(const char* name) :
+	 	Scene(name),
 		mRadius(0.1f),
 		mRelaxationFactor(1.0f),
-		mPlinth(false),
-		plasticDeformation(false)
+		plasticDeformation(false) 
 	{
 		const Vec3 colorPicker[7] =
 		{
@@ -24,8 +23,6 @@ public:
 
 	float mRadius;
 	float mRelaxationFactor;
-	bool mPlinth;
-
 	Vec3 mColorPicker[7];
 
 	struct Instance
@@ -87,7 +84,6 @@ public:
 	std::vector<Instance> mInstances;
 
 private:
-
 	struct RenderingInstance
 	{
 		Mesh* mMesh;
@@ -102,7 +98,6 @@ private:
 
 	bool plasticDeformation;
 
-
 public:
 	virtual void AddInstance(Instance instance)
 	{
@@ -115,6 +110,7 @@ public:
 		return full_path;
 	}
 
+	// void Initialize(py::array_t<float> scene_params, int thread_idx = 0)
 	void Initialize(py::array_t<float> scene_params, 
                     py::array_t<float> vertices,
                     py::array_t<int> stretch_edges,
@@ -169,12 +165,13 @@ public:
 		float viscosity = ptr[23];
 		float draw_mesh = ptr[24];
 
-		// add rigid bodies
+		// add rigid
 		float rigid_invMass = 1.0f/mass_rigid;
 		int group = 0;
 		float s = radius*0.5f;
 
 		char path[100];
+
 		if (type == 1)
 			make_path(path, "/data/box.ply");
 		else if (type == 3)
@@ -222,17 +219,17 @@ public:
 		else if (type == 38)
 			make_path(path, "/data/rigid/wiper.obj");
 		
-		CreateParticleShape(
-		        GetFilePathByPlatform(path).c_str(),
-				Vec3(dimx_rigid, dimy_rigid, dimz_rigid),
-				scale_rigid, rotation, s, Vec3(0.0f, 0.0f, 0.0f), 
-				rigid_invMass, true, 1.0, NvFlexMakePhase(group++, 0), true, 0.0f,
-				0.0f, 0.0f, Vec4(0.0f), 0.0f, true);
-	
+		// CreateParticleShape(
+		//         GetFilePathByPlatform(path).c_str(),
+		// 		Vec3(dimx_rigid, dimy_rigid, dimz_rigid),
+		// 		scale_rigid, rotation, s, Vec3(0.0f, 0.0f, 0.0f), 
+		// 		rigid_invMass, true, 1.0, NvFlexMakePhase(group++, 0), true, 0.0f,
+		// 		0.0f, 0.0f, Vec4(0.0f), 0.0f, true);
+
 		// g_numSolidParticles = g_buffers->positions.size();
 
 		// add rope
-		// int ropeStart = g_buffers->positions.size();
+		int ropeStart = g_buffers->positions.size();
 		char rope_path[100];
 		Instance rope(make_path(rope_path, "/data/rope.obj"));
 		rope.mScale = rope_scale;
@@ -252,7 +249,33 @@ public:
 		rope.mClusterPlasticCreep = clusterPlasticCreep;
 		AddInstance(rope);
 
-		// no fluids or sdf based collision
+		// create rope
+		int rigidOffsets_size = g_buffers->rigidOffsets.size();
+		for (int i = 0; i < rigidOffsets_size; ++i){
+			std::cout << "rigidOffsets:" << g_buffers->rigidOffsets[i] << std::endl;
+		}
+		
+		// printf("rigidOffsets size: ", g_buffers->rigidOffsets);
+		g_buffers->rigidOffsets.push_back(0);
+		// std::cout << "rigidOffsets:" << g_buffers->rigidOffsets << std::endl;
+
+		mRenderingInstances.resize(0);
+
+		// build soft bodies 
+		
+		// std::cout << "mRenderingInstances:" << mRenderingInstances.size() << std::endl;
+		// // CreateSoftBody(mInstances[0], mRenderingInstances.size(), ropeStart);
+		// std::cout << "group:" << group << std::endl;
+		CreateSoftBody(mInstances[0], group, ropeStart);
+		printf("Debug2\n");
+		// printf("Finish creat the soft body.\n");
+
+		// fix any particles below the ground plane in place
+		for (int i = ropeStart; i < int(g_buffers->positions.size()); ++i)
+			if (g_buffers->positions[i].y < 0.4f)
+				g_buffers->positions[i].w = 0.0f;
+
+
 		// Parameter setting
 		// no fluids or sdf based collision
 		g_solverDesc.featureMode = eNvFlexFeatureModeSimpleSolids;
@@ -297,29 +320,10 @@ public:
 			g_drawPoints = true;
 			g_drawSprings = false;
 		};
-
-		// build soft bodies
-		if (g_buffers->rigidIndices.empty())
-			g_buffers->rigidOffsets.push_back(0);
-	
-		mRenderingInstances.resize(0);
-
-		CreateSoftBody(mInstances[0], mRenderingInstances.size());
-
-		// fix any particles below the ground plane in place
-		for (int i = 0; i < int(g_buffers->positions.size()); ++i)
-			if (g_buffers->positions[i].y < 0.4f)
-				g_buffers->positions[i].w = 0.0f;
-
-		// expand radius for better self collision
-		// g_params.radius *= 1.5f;
-
-		// g_lightDistance *= 1.5f;
-
 		
 	}
 
-	void CreateSoftBody(Instance instance, int group = 0, bool texture=false)
+	void CreateSoftBody(Instance instance, int group = 0, int ropeStart = 0, bool texture=false)
 	{
 		RenderingInstance renderingInstance;
 
@@ -385,13 +389,8 @@ public:
 
 		const int particleOffset = g_buffers->positions.size();
 		const int indexOffset = g_buffers->rigidOffsets.back();
-
-		// std::cout << "particleOffset:" << particleOffset << std::endl; 0->7021
-		// std::cout << "indexOffset:" << indexOffset << std::endl; 0->7021
-		
-		// std::cout << "asset->numShapeIndices:" << asset->numShapeIndices << std::endl;3213
-		// std::cout << "asset->numShapes:" << asset->numShapes << std::endl; 50
-		// std::cout << "asset->numParticles:" << asset->numParticles << std::endl; 1024
+		// std::cout << "particleOffset:" << particleOffset << std::endl;
+		// std::cout << "indexOffset:" << indexOffset << std::endl;
 
 		// add particle data to solver
 		for (int i = 0; i < asset->numParticles; ++i)
@@ -403,20 +402,30 @@ public:
 			g_buffers->phases.push_back(phase);
 		}
 
-		// add shape data to solver
-		for (int i = 0; i < int(asset->numShapeIndices); ++i)
-			g_buffers->rigidIndices.push_back(asset->shapeIndices[i] + particleOffset);
+		std::cout << "particle size 1:" << g_buffers->positions.size() << std::endl;
+		std::cout << "rigid indices1:" << g_buffers->rigidIndices.size() <<std::endl;
 
+		// add shape data to solver 
+		for (int i = 0; i < asset->numShapes; ++i)
+			g_buffers->rigidIndices.push_back(int(asset->shapeIndices[i]) + particleOffset);
+			// g_buffers->rigidIndices.push_back(int(asset->shapeIndices[i]));
+		
+		std::cout << "rigid indices2:" << g_buffers->rigidIndices.size() <<std::endl;
+		
+		//TODO
 		for (int i = 0; i < asset->numShapes; ++i)
 		{
-			g_buffers->rigidOffsets.push_back(asset->shapeOffsets[i] + indexOffset);
-			g_buffers->rigidTranslations.push_back(Vec3(&asset->shapeCenters[i * 3]));
+			g_buffers->rigidOffsets.push_back(int(asset->shapeOffsets[i]) + indexOffset);
+			//g_buffers->rigidOffsets.push_back(int(g_buffers->rigidIndices.size()));
+			// g_buffers->rigidTranslations.push_back(Vec3(&asset->shapeCenters[i * 3])); //disappear rigid objects
 			g_buffers->rigidRotations.push_back(Quat());
 			g_buffers->rigidCoefficients.push_back(asset->shapeCoefficients[i]);
 		}
 
+		// printf("Debug\n");
 
-		// add plastic deformation data to solver, if at least one asset has non-zero plastic deformation coefficients, leave the according pointers at NULL otherwise
+		// add plastic deformation data to solver, 
+		// if at least one asset has non-zero plastic deformation coefficients, leave the according pointers at NULL otherwise
 		if (plasticDeformation)
 		{
 			if (asset->shapePlasticThresholds && asset->shapePlasticCreeps)
@@ -465,16 +474,20 @@ public:
 		// std::cout << "asset->numSprings:" << asset->numSprings << std::endl;
 		for (int i = 0; i < asset->numSprings; ++i)
 		{
-			g_buffers->springIndices.push_back(asset->springIndices[i * 2 + 0]);
-			g_buffers->springIndices.push_back(asset->springIndices[i * 2 + 1]);
+			g_buffers->springIndices.push_back(int(asset->springIndices[i * 2 + 0]));
+			g_buffers->springIndices.push_back(int(asset->springIndices[i * 2 + 1]));
 
 			g_buffers->springStiffness.push_back(asset->springCoefficients[i]);
 			g_buffers->springLengths.push_back(asset->springRestLengths[i]);
 		}
 
+		printf("Debug\n");
+
 		NvFlexExtDestroyAsset(asset);
 
 		mRenderingInstances.push_back(renderingInstance);
+
+		printf("Debug\n");
 	}
 
 	virtual void Draw(int pass)
@@ -503,8 +516,9 @@ public:
 
 					if (cluster > -1)
 					{
+						printf("Debug Draw\n");
 						// offset in the global constraint array
-						int rigidIndex = cluster + instance.mOffset;
+						int rigidIndex = cluster + int(instance.mOffset);
 
 						Vec3 localPos = Vec3(instance.mMesh->m_positions[i]) - instance.mRigidRestPoses[cluster];
 
@@ -523,6 +537,5 @@ public:
 			DrawMesh(&m, instance.mColor);
 		}
 	}
-
+	
 };
-
