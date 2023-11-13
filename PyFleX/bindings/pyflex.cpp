@@ -2521,7 +2521,7 @@ void pyflex_init(bool headless=false) {
     g_scenes.push_back(new SoftgymCloth("Softgym Flag Cloth")); //29
     g_scenes.push_back(new SoftgymCloth2("Softgym Cloth")); //30
 
-    g_scenes.push_back(new by_RopeRigid("Rope Rigid")); //31
+    g_scenes.push_back(new by_RigidRope("Rigid Rope")); //31
     g_scenes.push_back(new by_RigidGranular("Rigid Granular")); //32
     g_scenes.push_back(new by_RigidCloth("Rigid Cloth")); //33
 

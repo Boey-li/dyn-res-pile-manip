@@ -294,6 +294,7 @@ public:
 		const int indexOffset = g_buffers->rigidOffsets.back();
 
 		// add particle data to solver
+		std::cout << "asset->numShapes:" << asset->numShapes << std::endl;
 		for (int i = 0; i < asset->numParticles; ++i)
 		{
 			g_buffers->positions.push_back(&asset->particles[i * 4]);
@@ -362,6 +363,7 @@ public:
 		}
 
 		// add link data to the solver 
+		// std::cout << "asset->numSprings:" << asset->numSprings << std::endl;
 		for (int i = 0; i < asset->numSprings; ++i)
 		{
 			g_buffers->springIndices.push_back(asset->springIndices[i * 2 + 0]);

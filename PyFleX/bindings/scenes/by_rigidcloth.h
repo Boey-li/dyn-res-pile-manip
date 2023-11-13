@@ -115,82 +115,11 @@ public:
 		int clothStart = g_buffers->positions.size();
 		
 		// add cloth
-		auto verts_buf = vertices.request();
-        size_t num_verts = verts_buf.shape[0] / 3;
-		int phase = NvFlexMakePhase(0, eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter);
-        if (num_verts > 0)
-        {
-            // If a mesh is passed, then use passed in mesh
-            float mass = float(mass_cloth) / num_verts;
-            float invMass = 1.0f / mass;
-            auto lower = Vec4(dimx_cloth, dimy_cloth, dimz_cloth, 0);
-
-            int baseIndex = int(g_buffers->positions.size());
-            Vec3 velocity = Vec3(0, 0, 0);
-
-            auto verts_ptr = (float *)verts_buf.ptr;
-            for (size_t idx = 0; idx < num_verts; idx++)
-            {
-                g_buffers->positions.push_back(
-                    Vec4(verts_ptr[3 * idx], verts_ptr[3 * idx + 1], verts_ptr[3 * idx + 2], invMass) + lower);
-                g_buffers->velocities.push_back(velocity);
-                g_buffers->phases.push_back(phase);
-            }
-
-            auto faces_buf = faces.request();
-            auto faces_ptr = (int *)faces_buf.ptr;
-            size_t num_faces = int(faces_buf.shape[0] / 3);
-            for (size_t idx = 0; idx < num_faces; idx++)
-            {
-                g_buffers->triangles.push_back(baseIndex + faces_ptr[3 * idx]);
-                g_buffers->triangles.push_back(baseIndex + faces_ptr[3 * idx + 1]);
-                g_buffers->triangles.push_back(baseIndex + faces_ptr[3 * idx + 2]);
-                auto p1 = g_buffers->positions[baseIndex + faces_ptr[3 * idx]];
-                auto p2 = g_buffers->positions[baseIndex + faces_ptr[3 * idx + 1]];
-                auto p3 = g_buffers->positions[baseIndex + faces_ptr[3 * idx + 2]];
-                auto U = p2 - p1;
-                auto V = p3 - p1;
-                auto normal = Vec3(
-                    U.y * V.z - U.z * V.y,
-                    U.z * V.x - U.x * V.z,
-                    U.x * V.y - U.y * V.x);
-                g_buffers->triangleNormals.push_back(normal / Length(normal));
-            }
-            
-            auto stretch_edges_buf = stretch_edges.request();
-            auto stretch_edges_ptr = (int *)stretch_edges_buf.ptr;
-            size_t num_stretch_edges = int(stretch_edges_buf.shape[0] / 2);
-            for (size_t idx = 0; idx < num_stretch_edges; idx++)
-            {
-                CreateSpring(baseIndex + stretch_edges_ptr[2 * idx], baseIndex + stretch_edges_ptr[2 * idx + 1], stretchStiffness);
-            }
-
-            auto bend_edges_buf = bend_edges.request();
-            auto bend_edges_ptr = (int *)bend_edges_buf.ptr;
-            size_t num_bend_edges = int(bend_edges_buf.shape[0] / 2);
-            for (size_t idx = 0; idx < num_bend_edges; idx++)
-            {
-                CreateSpring(baseIndex + bend_edges_ptr[2 * idx], baseIndex + bend_edges_ptr[2 * idx + 1], bendStiffness);
-            }
-
-            auto shear_edges_buf = shear_edges.request();
-            auto shear_edges_ptr = (int *)shear_edges_buf.ptr;
-            size_t num_shear_edges = int(shear_edges_buf.shape[0] / 2);
-            for (size_t idx = 0; idx < num_shear_edges; idx++)
-            {
-                CreateSpring(baseIndex + shear_edges_ptr[2 * idx], baseIndex + shear_edges_ptr[2 * idx + 1], shearStiffness);
-            }
-        }
-        else
-        {
-            float mass = mass_cloth; // avg bath towel is 500-700g
-            CreateSpringGrid(Vec3(dimx_cloth, dimy_cloth, dimz_cloth), size_cloth_x, size_cloth_z, size_cloth_y, radius, 
-			NvFlexMakePhase(group++, 0), stretchStiffness, bendStiffness, shearStiffness, 0.0f, 1.0f / mass);
-        }
+		float mass = mass_cloth; // avg bath towel is 500-700g
+		CreateSpringGrid(Vec3(dimx_cloth, dimy_cloth, dimz_cloth), size_cloth_x, size_cloth_z, size_cloth_y, radius, 
+		NvFlexMakePhase(group++, 0), stretchStiffness, bendStiffness, shearStiffness, 0.0f, 1.0f / mass);
+        
 		
-
-		float restDistance = radius*0.55f;
-
 		g_numSubsteps = 2;
 		g_params.numIterations = 4;
 
@@ -212,6 +141,7 @@ public:
 		// g_params.relaxationFactor = 1.f;
 		// g_params.damping = 1.0f; //0.14f
 
+		// float restDistance = radius*0.55f;
 		// Emitter e1;
 		// e1.mDir = Vec3(1.0f, 0.0f, 0.0f);
 		// e1.mRight = Vec3(0.0f, 0.0f, -1.0f);

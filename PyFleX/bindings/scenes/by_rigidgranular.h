@@ -127,8 +127,6 @@ public:
 			}
 		}
 
-		float restDistance = radius*0.55f;
-
 		g_numSolidParticles = g_buffers->positions.size();
 		g_numSubsteps = 2;
 
@@ -145,6 +143,7 @@ public:
 		g_params.relaxationFactor = 1.f;
 		g_params.damping = 0.14f;
 
+		float restDistance = radius*0.55f;
 		Emitter e1;
 		e1.mDir = Vec3(1.0f, 0.0f, 0.0f);
 		e1.mRight = Vec3(0.0f, 0.0f, -1.0f);
