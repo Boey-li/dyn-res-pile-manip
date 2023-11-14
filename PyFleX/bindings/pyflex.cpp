@@ -2525,6 +2525,7 @@ void pyflex_init(bool headless=false) {
     g_scenes.push_back(new by_RigidGranular("Rigid Granular")); //32
     g_scenes.push_back(new by_RigidCloth("Rigid Cloth")); //33
     g_scenes.push_back(new by_RopeCloth("Rope Cloth")); //34
+    g_scenes.push_back(new by_BowlGranular("Bowl Granular")); //35
 
 
     /*
