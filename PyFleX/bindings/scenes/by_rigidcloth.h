@@ -112,7 +112,7 @@ public:
 
 		g_numSolidParticles = g_buffers->positions.size();
 
-		int clothStart = g_buffers->positions.size();
+		// int clothStart = g_buffers->positions.size();
 		
 		// add cloth
 		float mass = mass_cloth; // avg bath towel is 500-700g

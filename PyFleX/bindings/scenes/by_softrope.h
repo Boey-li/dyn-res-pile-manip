@@ -364,6 +364,7 @@ public:
 
 		// add link data to the solver 
 		// std::cout << "asset->numSprings:" << asset->numSprings << std::endl;
+		 std::cout << "asset->numSprings:" << asset->numSprings << std::endl;
 		for (int i = 0; i < asset->numSprings; ++i)
 		{
 			g_buffers->springIndices.push_back(asset->springIndices[i * 2 + 0]);

@@ -100,6 +100,11 @@ public:
 				scale, rotation, s, Vec3(0.0f, 0.0f, 0.0f), 
 				invMass, true, rigidStiffness, NvFlexMakePhase(group++, 0), true, 0.0f,
 				0.0f, 0.0f, Vec4(0.0f), 0.0f, true);
+			
+		for (int i = 0; i < g_buffers->rigidOffsets.size(); ++i)
+		{
+			std::cout << "g_buffers->rigidOffsets" << g_buffers->rigidOffsets[i] << std::endl; 
+		}
 		
 		// add carrots
 		int num_x = ptr[12];
@@ -125,6 +130,11 @@ public:
 									0.0f, Vec4(237.0f/255.0f, 145.0f/255.0f, 33.0f/255.0f, 1.0f));	
 				}
 			}
+		}
+
+		for (int i = 0; i < g_buffers->rigidOffsets.size(); ++i)
+		{
+			std::cout << "g_buffers->rigidOffsets" << g_buffers->rigidOffsets[i] << std::endl; 
 		}
 
 		g_numSolidParticles = g_buffers->positions.size();

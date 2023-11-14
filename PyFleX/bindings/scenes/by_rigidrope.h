@@ -222,12 +222,7 @@ public:
 		else if (type == 38)
 			make_path(path, "/data/rigid/wiper.obj");
 		
-		CreateParticleShape(
-		        GetFilePathByPlatform(path).c_str(),
-				Vec3(dimx_rigid, dimy_rigid, dimz_rigid),
-				scale_rigid, rotation, s, Vec3(0.0f, 0.0f, 0.0f), 
-				rigid_invMass, true, 1.0, NvFlexMakePhase(group++, 0), true, 0.0f,
-				0.0f, 0.0f, Vec4(0.0f), 0.0f, true);
+		
 	
 		// g_numSolidParticles = g_buffers->positions.size();
 
@@ -251,6 +246,33 @@ public:
 		rope.mClusterPlasticThreshold = clusterPlasticThreshold;
 		rope.mClusterPlasticCreep = clusterPlasticCreep;
 		AddInstance(rope);
+
+		CreateParticleShape(
+		        GetFilePathByPlatform(path).c_str(),
+				Vec3(dimx_rigid, dimy_rigid, dimz_rigid),
+				scale_rigid, rotation, s, Vec3(0.0f, 0.0f, 0.0f), 
+				rigid_invMass, true, 1.0, NvFlexMakePhase(group++, 0), true, 0.0f,
+				0.0f, 0.0f, Vec4(0.0f), 0.0f, true);
+
+		// build soft bodies
+		if (g_buffers->rigidIndices.empty())
+			g_buffers->rigidOffsets.push_back(0);
+	
+		mRenderingInstances.resize(0);
+
+		// std::cout << "group before rope:" << group << std::endl; 
+		CreateSoftBody(mInstances[0], group++);
+		std::cout << "group after rope:" << group << std::endl; 
+
+		// fix any particles below the ground plane in place
+		// for (int i = 0; i < int(g_buffers->positions.size()); ++i)
+		// 	if (g_buffers->positions[i].y < 0.4f)
+		// 		g_buffers->positions[i].w = 0.0f;
+		
+		// for (int i = 0; i < g_buffers->rigidOffsets.size(); ++i)
+		// {
+		// 	std::cout << "g_buffers->rigidOffsets" << g_buffers->rigidOffsets[i] << std::endl; 
+		// }
 
 		// no fluids or sdf based collision
 		// Parameter setting
@@ -298,18 +320,9 @@ public:
 			g_drawSprings = false;
 		};
 
-		// build soft bodies
-		if (g_buffers->rigidIndices.empty())
-			g_buffers->rigidOffsets.push_back(0);
-	
-		mRenderingInstances.resize(0);
+		printf("finish scenes\n");
 
-		CreateSoftBody(mInstances[0], mRenderingInstances.size());
-
-		// fix any particles below the ground plane in place
-		for (int i = 0; i < int(g_buffers->positions.size()); ++i)
-			if (g_buffers->positions[i].y < 0.4f)
-				g_buffers->positions[i].w = 0.0f;
+		
 
 		// expand radius for better self collision
 		// g_params.radius *= 1.5f;
@@ -386,12 +399,12 @@ public:
 		const int particleOffset = g_buffers->positions.size();
 		const int indexOffset = g_buffers->rigidOffsets.back();
 
-		// std::cout << "particleOffset:" << particleOffset << std::endl; 0->7021
-		// std::cout << "indexOffset:" << indexOffset << std::endl; 0->7021
+		// std::cout << "particleOffset:" << particleOffset << std::endl; //0->7021
+		// std::cout << "indexOffset:" << indexOffset << std::endl; //0->7021
 		
-		// std::cout << "asset->numShapeIndices:" << asset->numShapeIndices << std::endl;3213
-		// std::cout << "asset->numShapes:" << asset->numShapes << std::endl; 50
-		// std::cout << "asset->numParticles:" << asset->numParticles << std::endl; 1024
+		std::cout << "asset->numShapeIndices:" << asset->numShapeIndices << std::endl; //3213
+		std::cout << "asset->numShapes:" << asset->numShapes << std::endl; //50
+		std::cout << "asset->numParticles:" << asset->numParticles << std::endl; //1024
 
 		// add particle data to solver
 		for (int i = 0; i < asset->numParticles; ++i)
@@ -403,17 +416,33 @@ public:
 			g_buffers->phases.push_back(phase);
 		}
 
-		// add shape data to solver
-		for (int i = 0; i < int(asset->numShapeIndices); ++i)
-			g_buffers->rigidIndices.push_back(asset->shapeIndices[i] + particleOffset);
+		std::cout << "rigidIndices 1:" << g_buffers->rigidIndices.size() << std::endl; //7021
+		std::cout << "rigidOffsets 1:" << g_buffers->rigidOffsets.size() << std::endl; //2 -> 0, 7021
 
+		// add shape data to solver
+		for (int i = 0; i < asset->numShapeIndices; ++i)
+		{
+			g_buffers->rigidIndices.push_back(asset->shapeIndices[i] + particleOffset);
+		}
+
+		// make cluster
+		// g_buffers->rigidOffsets.push_back(indexOffset);
+		//asset->numShapes
 		for (int i = 0; i < asset->numShapes; ++i)
 		{
-			g_buffers->rigidOffsets.push_back(asset->shapeOffsets[i] + indexOffset);
-			g_buffers->rigidTranslations.push_back(Vec3(&asset->shapeCenters[i * 3]));
+			g_buffers->rigidOffsets.push_back(asset->shapeOffsets[i] + indexOffset); //make bug
+			// g_buffers->rigidTranslations.push_back(Vec3(&asset->shapeCenters[i * 3])); //make rigid bodies disappear
 			g_buffers->rigidRotations.push_back(Quat());
 			g_buffers->rigidCoefficients.push_back(asset->shapeCoefficients[i]);
 		}
+
+		for (int i = 0; i < g_buffers->rigidOffsets.size(); ++i)
+		{
+			std::cout << "g_buffers->rigidOffsets" << g_buffers->rigidOffsets[i] << std::endl; 
+		}
+
+		std::cout << "rigidIndices 2:" << g_buffers->rigidIndices.size() << std::endl; //10233
+		std::cout << "rigidOffsets 2:" << g_buffers->rigidOffsets.size() << std::endl; //52
 
 
 		// add plastic deformation data to solver, if at least one asset has non-zero plastic deformation coefficients, leave the according pointers at NULL otherwise
@@ -462,7 +491,7 @@ public:
 		}
 
 		// add link data to the solver 
-		// std::cout << "asset->numSprings:" << asset->numSprings << std::endl;
+		// std::cout << "asset->numSprings:" << asset->numSprings << std::endl; //0
 		for (int i = 0; i < asset->numSprings; ++i)
 		{
 			g_buffers->springIndices.push_back(asset->springIndices[i * 2 + 0]);

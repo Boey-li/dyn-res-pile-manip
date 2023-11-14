@@ -127,6 +127,17 @@ struct NvFlexVector
 
 	T& operator[](int index)
 	{
+		if (index >= count)
+		{
+			printf("index: %d\n", index);
+			printf("count: %d\n", count);
+		}
+		//printf("index: %d\n", index);
+		// if (count == 1 or count == 0) 
+		// {
+		// 	printf("operator count: %d\n", count);
+		// 	printf("operator index: %d\n", index);
+		// }
 		assert(mappedPtr);
 		assert(index < count);
 
@@ -138,6 +149,11 @@ struct NvFlexVector
 		assert(mappedPtr || !buffer);
 
 		reserve(count+1);
+
+		// if (count == 1) 
+		// {
+		// 	printf("push_back count: %d\n", count);
+		// }
 
 		// copy element
 		mappedPtr[count++] = t;		
