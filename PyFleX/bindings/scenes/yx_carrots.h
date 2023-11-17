@@ -41,6 +41,9 @@ public:
 		float sing_z = ptr[18];
 		float add_noise_ft = ptr[19];
 		float radius = ptr[20];
+		float mass = ptr[21];
+
+		float inv_mass = 1.0f/mass;
 		
 		float pos_noise = pos_diff*0.5f;
 		int draw_skin = (int) draw_skin_ft;
@@ -85,12 +88,14 @@ public:
 							y_noise = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 2 * pos_noise - pos_noise;
 							z_noise = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) * 2 * pos_noise - pos_noise;
 						}
-						CreateParticleShape(m, Vec3(x+float(x_idx)*pos_diff+x_noise, y+float(y_idx)*pos_diff+y_noise, z+float(z_idx)*pos_diff+z_noise), scale, 0.0f, radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 0.0f, Vec4(237.0f/255.0f, 145.0f/255.0f, 33.0f/255.0f, 1.0f));
+						CreateParticleShape(m, Vec3(x+float(x_idx)*pos_diff+x_noise, y+float(y_idx)*pos_diff+y_noise, z+float(z_idx)*pos_diff+z_noise), 
+											scale, 0.0f, radius*1.001f, 0.0f, inv_mass, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 0.0f, Vec4(237.0f/255.0f, 145.0f/255.0f, 33.0f/255.0f, 1.0f));
 						g_drawPoints = false;
 					} else {
 						int num_planes = Rand(6,12);
 						Mesh* m = CreateRandomConvexMesh(num_planes, minDist, maxDist);
-						CreateParticleShape(m, Vec3(x+float(x_idx)*pos_diff, y+float(y_idx)*pos_diff, z+float(z_idx)*pos_diff), scale, 0.0f, radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), false);
+						CreateParticleShape(m, Vec3(x+float(x_idx)*pos_diff, y+float(y_idx)*pos_diff, z+float(z_idx)*pos_diff), 
+											scale, 0.0f, radius*1.001f, 0.0f, inv_mass, true, 0.8f, NvFlexMakePhase(group++, 0), false);
 						g_drawPoints = true;	
 					}
 				}
