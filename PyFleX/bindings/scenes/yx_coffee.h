@@ -29,25 +29,28 @@ public:
 		float draw_skin_ft = ptr[6];
 		float num_coffee_ft = ptr[7];
 		float radius = ptr[8];
+
+		float num_x_ft = ptr[11];
+		float num_y_ft = ptr[12];
+		float num_z_ft = ptr[13];
+		float pos_diff = ptr[14];
+
+		float mass = ptr[15];
+		float inv_mass = 1.0f/mass;
+
 		
 		int draw_skin = (int) draw_skin_ft;
 		int num_coffee = (int) num_coffee_ft;
+		int num_x = (int) num_x_ft;
+		int num_y = (int) num_y_ft;
+		int num_z = (int) num_z_ft;
 
         // granular pile
 		// float radius = 0.075f;
 
         char path[1000];
 		make_path(path, "/data/coffee_bean.ply");
-        // make_path(path, "/data/sandcastle.obj");
-        // make_path(path, "/data/bunny.ply");
-		
-		// char path[1000];
-		// make_path(path, "/data/box.ply");
         
-		int num_x = 8;
-		int num_y = 10;
-		int num_z = 8;
-		float pos_diff = scale;
 		int group = 0;
 
 		for (int y_idx = 0; y_idx < num_y + 1; y_idx++) {
@@ -70,10 +73,11 @@ public:
 					if (draw_skin) {
 						CreateParticleShape(GetFilePathByPlatform(path).c_str(), 
 											Vec3(x+float(x_idx)*pos_diff, y+float(y_idx)*pos_diff, z+float(z_idx)*pos_diff), 
-											scale, 0.0f, radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 0.1f, Vec4(0.29f, 0.17f, 0.16f, 1.0f));
+											scale, 0.0f, radius*1.001f, 0.0f, inv_mass, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 0.1f, Vec4(0.29f, 0.17f, 0.16f, 1.0f));
 						g_drawPoints = false;
 					} else {
-						CreateParticleShape(GetFilePathByPlatform(path).c_str(), Vec3(x+float(x_idx)*pos_diff, y+float(y_idx)*pos_diff, z+float(z_idx)*pos_diff), scale, 0.0f, radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), false);
+						CreateParticleShape(GetFilePathByPlatform(path).c_str(), Vec3(x+float(x_idx)*pos_diff, y+float(y_idx)*pos_diff, z+float(z_idx)*pos_diff), 
+						scale, 0.0f, radius*1.001f, 0.0f, inv_mass, true, 0.8f, NvFlexMakePhase(group++, 0), false);
 						g_drawPoints = true;
 					}
 				}
