@@ -233,10 +233,11 @@ public:
 		g_params.dynamicFriction = dynamic_friction;
         g_params.staticFriction = static_friction;
         g_params.particleFriction = particleFriction;
+		g_params.viscosity = viscosity;
 
 		g_numSubsteps = 4; 
         g_params.numIterations = 50; 
-        g_params.radius = radius * 1.8f;
+        g_params.radius = radius;
 
         g_params.damping = 1.0f;
         g_params.sleepThreshold = 0.02f;

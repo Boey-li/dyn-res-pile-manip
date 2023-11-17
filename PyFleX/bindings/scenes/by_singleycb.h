@@ -60,33 +60,27 @@ public:
 		else if (type == 9)
 			make_path(path, "/data/ycb/09_gelatin_box.obj");
 		else if (type == 10)
-			make_path(path, "/data/ycb/10_potted_meat_can.obj");
-		else if (type == 12)
 			make_path(path, "/data/ycb/12_strawberry.obj");
-		else if (type == 13)
+		else if (type == 11)
 			make_path(path, "/data/ycb/13_apple.obj");
-		else if (type == 14)
+		else if (type == 12)
 			make_path(path, "/data/ycb/14_lemon.obj");
-		else if (type == 15)
+		else if (type == 13)
 			make_path(path, "/data/ycb/15_peach.obj");	
-		else if (type == 16)
+		else if (type == 14)
 			make_path(path, "/data/ycb/16_pear.obj");
-		else if (type == 17)
+		else if (type == 15)
 			make_path(path, "/data/ycb/17_orange.obj");
-		else if (type == 19)
+		else if (type == 16)
 			make_path(path, "/data/ycb/19_pitcher_base.obj");
-		else if (type == 21)
+		else if (type == 17)
 			make_path(path, "/data/ycb/21_bleach_cleanser.obj");
-		else if (type == 24)
+		else if (type == 18)
 			make_path(path, "/data/ycb/24_bowl.obj");
-		else if (type == 25)
-			make_path(path, "/data/ycb/25_mug.obj");
-		else if (type == 35)
+		else if (type == 19)
 			make_path(path, "/data/ycb/35_power_drill.obj");
-		else if (type == 36)
+		else if (type == 20)
 			make_path(path, "/data/ycb/36_wood_block.obj");
-		else if (type == 37)
-			make_path(path, "/data/ycb/37_scissors.obj");
 		
 		// void CreateParticleShape(const Mesh* srcMesh, 
 		// Vec3 lower, Vec3 scale, float rotation, float spacing, 

@@ -49,6 +49,7 @@ public:
 		float static_friction = ptr[19];
 		float viscosity = ptr[20];
 		float draw_mesh = ptr[21];
+		float particleFriction = ptr[22];
 
 		float rigid_invMass = 1.0f/mass_rigid;
 		int group = 0;
@@ -117,15 +118,16 @@ public:
 		// add cloth
 		float mass = mass_cloth; // avg bath towel is 500-700g
 		CreateSpringGrid(Vec3(dimx_cloth, dimy_cloth, dimz_cloth), size_cloth_x, size_cloth_z, size_cloth_y, radius, 
-		NvFlexMakePhase(group++, 0), stretchStiffness, bendStiffness, shearStiffness, 0.0f, 1.0f / mass);
+		NvFlexMakePhase(group++, eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter), stretchStiffness, bendStiffness, shearStiffness, 0.0f, 1.0f / mass);
         
 		
-		g_numSubsteps = 2;
-		g_params.numIterations = 4;
+		g_numSubsteps = 4;
+		g_params.numIterations = 20;
 
 		g_params.radius = radius;
 		g_params.dynamicFriction = dynamic_friction;
 		g_params.staticFriction = static_friction;
+		g_params.particleFriction = particleFriction;
 		g_params.viscosity = viscosity;
 
 		g_params.dissipation = 0.01f;
