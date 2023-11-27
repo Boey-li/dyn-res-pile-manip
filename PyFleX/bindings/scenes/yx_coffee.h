@@ -47,11 +47,6 @@ public:
 
         char path[1000];
 		make_path(path, "/data/coffee_bean.ply");
-        // make_path(path, "/data/sandcastle.obj");
-        // make_path(path, "/data/bunny.ply");
-		
-		// char path[1000];
-		// make_path(path, "/data/box.ply");
         
 		// int num_x = 8;
 		// int num_y = 10;
