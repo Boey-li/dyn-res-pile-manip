@@ -27,11 +27,20 @@ public:
         float sFriction = ptr[4];
         float dFriction = ptr[5];
 		float draw_skin_ft = ptr[6];
-		float num_coffee_ft = ptr[7];
-		float radius = ptr[8];
+		float radius = ptr[7];
+
+		float num_x_ft = ptr[8];
+		float num_y_ft = ptr[9];
+		float num_z_ft = ptr[10];
+		float pos_diff = ptr[11];
+		
+		float mass = ptr[12];
+		float inv_mass = 1.0f/mass;
 		
 		int draw_skin = (int) draw_skin_ft;
-		int num_coffee = (int) num_coffee_ft;
+		int num_x = (int) num_x_ft;
+		int num_y = (int) num_y_ft;
+		int num_z = (int) num_z_ft;
 
         // granular pile
 		// float radius = 0.075f;
@@ -44,24 +53,15 @@ public:
 		// char path[1000];
 		// make_path(path, "/data/box.ply");
         
-		int num_x = 8;
-		int num_y = 10;
-		int num_z = 8;
-		float pos_diff = scale;
+		// int num_x = 8;
+		// int num_y = 10;
+		// int num_z = 8;
+		// float pos_diff = scale;
 		int group = 0;
 
 		for (int y_idx = 0; y_idx < num_y + 1; y_idx++) {
-			if (group > num_coffee) {
-				break;
-			}
 			for (int x_idx = 0; x_idx < num_x + 1; x_idx++) {
-				if (group > num_coffee) {
-					break;
-				}
 				for (int z_idx = 0; z_idx < num_z + 1; z_idx++) {
-					if (group > num_coffee) {
-						break;
-					}
 					// void CreateParticleShape(const Mesh* srcMesh, 
 					// Vec3 lower, Vec3 scale, float rotation, float spacing, 
 					// Vec3 velocity, float invMass, bool rigid, float rigidStiffness, 
@@ -70,10 +70,11 @@ public:
 					if (draw_skin) {
 						CreateParticleShape(GetFilePathByPlatform(path).c_str(), 
 											Vec3(x+float(x_idx)*pos_diff, y+float(y_idx)*pos_diff, z+float(z_idx)*pos_diff), 
-											scale, 0.0f, radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 0.1f, Vec4(0.29f, 0.17f, 0.16f, 1.0f));
+											scale, 0.0f, radius*1.001f, 0.0f, inv_mass, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 0.1f, Vec4(0.29f, 0.17f, 0.16f, 1.0f));
 						g_drawPoints = false;
 					} else {
-						CreateParticleShape(GetFilePathByPlatform(path).c_str(), Vec3(x+float(x_idx)*pos_diff, y+float(y_idx)*pos_diff, z+float(z_idx)*pos_diff), scale, 0.0f, radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), false);
+						CreateParticleShape(GetFilePathByPlatform(path).c_str(), Vec3(x+float(x_idx)*pos_diff, y+float(y_idx)*pos_diff, z+float(z_idx)*pos_diff), 
+						scale, 0.0f, radius*1.001f, 0.0f, inv_mass, true, 0.8f, NvFlexMakePhase(group++, 0), false);
 						g_drawPoints = true;
 					}
 				}
