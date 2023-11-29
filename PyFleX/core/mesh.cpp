@@ -415,12 +415,12 @@ Colour readMtl(std::string path) {
 				std::stringstream ss(line);
 				std::string type;
 				ss >> type;
-				cout << type << endl;
+				// cout << type << endl;
 				if (type == "Kd") {
 					float r, g, b;
 					ss >> r >> g >> b;
 					// cout << r << g << b << endl;
-					cout << " texture Kd color" << Colour(r, g, b, 1.0f) << endl;
+					// cout << " texture Kd color" << Colour(r, g, b, 1.0f) << endl;
 					return Colour(r, g, b, 1.0f);
 				}
 			}

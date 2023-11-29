@@ -67,7 +67,7 @@ public:
 		// Modified by Baoyu 11/28/2023
 		// viscosity 
 		float viscosity = ptr[13];
-		std::cout << "viscosity: " << viscosity << std::endl;
+		// std::cout << "viscosity: " << viscosity << std::endl;
 
 		g_lightDistance *= 0.5f;
 
