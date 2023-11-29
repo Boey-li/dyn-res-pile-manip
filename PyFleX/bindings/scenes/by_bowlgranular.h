@@ -41,21 +41,44 @@ public:
 
         int draw_mesh = ptr[12];
 
+		// spoon
+		float spoon_scale = ptr[15];
+		float spoon_mass = ptr[16];
+		float spoon_rotation = ptr[17];
+
         char bowl_path[100];
         make_path(bowl_path, "/data/bowl.obj");
+		char spoon_path[100];
+		make_path(spoon_path, "/data/objectverse/spoon.obj");
         
         // add bowl
-        float invMass = 1.0f/bowl_mass; 
+        float bowl_invMass = 1.0f/bowl_mass; 
         int group = 0;
-        CreateParticleShape(
-		        GetFilePathByPlatform(bowl_path).c_str(),
-				Vec3(bowl_x, bowl_y, bowl_z),
-				bowl_scale, 0., radius*0.5f, Vec3(0.0f, 0.0f, 0.0f), 
-				invMass, true, 1.0, NvFlexMakePhase(group++, 0), true, 0.0f,
-				0.0f, 0.0f, Vec4(204.0f/255.0f, 204.0f/255.0f, 1.0f, 0.0f), 0.0f, false);
+		
+		// void CreateParticleShape(const Mesh* srcMesh, 
+		// Vec3 lower, Vec3 scale, float rotation, float spacing, 
+		// Vec3 velocity, float invMass, bool rigid, float rigidStiffness, 
+		// int phase, bool skin, float jitter=0.005f, Vec3 skinOffset=0.0f, 
+		// float skinExpand=0.0f, Vec4 color=Vec4(0.0f), float springStiffness=0.0f, bool texture=false)
         
-        float pos_diff = granular_scale + granular_dis;
+		// CreateParticleShape(
+		//         GetFilePathByPlatform(bowl_path).c_str(),
+		// 		Vec3(bowl_x, bowl_y, bowl_z),
+		// 		bowl_scale, 0., radius*0.5f, Vec3(0.0f, 0.0f, 0.0f), 
+		// 		bowl_invMass, true, 1.0, NvFlexMakePhase(group++, 0), true, 0.0f,
+		// 		0.0f, 0.0f, Vec4(204.0f/255.0f, 204.0f/255.0f, 1.0f, 0.0f), 0.0f, false);
+        
+		// // add spoon
+		// float spoon_invMass = 1.0f/spoon_mass; 
+		// CreateParticleShape(
+		//         GetFilePathByPlatform(spoon_path).c_str(),
+		// 		Vec3(bowl_x, bowl_y, bowl_z-1.0f),
+		// 		spoon_scale, spoon_rotation, radius*0.5f, Vec3(0.0f, 0.0f, 0.0f), 
+		// 		spoon_invMass, true, 1.0, NvFlexMakePhase(group++, 0), true, 0.0f,
+		// 		0.0f, 0.0f, Vec4(204.0f/255.0f, 204.0f/255.0f, 1.0f, 0.0f), 0.0f, false);
 
+
+        float pos_diff = granular_scale + granular_dis;
         // add carrots
 		for (int x_idx = 0; x_idx < num_x; x_idx++){
 			for (int z_idx = 0; z_idx < num_z; z_idx++) {

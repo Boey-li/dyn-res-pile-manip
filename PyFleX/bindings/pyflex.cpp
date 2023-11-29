@@ -3026,14 +3026,26 @@ void pyflex_add_capsule(py::array_t<float> params, py::array_t<float> lower_pos,
     pyflex_UnmapShapeBuffers(g_buffers);
 }
 
-void pyflex_add_mesh(const char *s, float scaling, int hideShape, py::array_t<float> color, bool texture=false) {
+// Modified by Baoyu 11/28/2023
+void pyflex_add_mesh(const char *s, float scaling, int hideShape, py::array_t<float> color, 
+                    py::array_t<float> translation, py::array_t<float> rotation, bool texture=false) 
+{
     Mesh* m = ImportMesh(s, texture);
     m->Transform(ScaleMatrix(Vec3(scaling)));
 
     NvFlexTriangleMeshId mesh = CreateTriangleMesh(m);
 
+    // record translation
+    auto ptr_translation = (float *) translation.request().ptr;
+    Vec3 translation_ = Vec3(ptr_translation[0], ptr_translation[1], ptr_translation[2]);
+
+    //record rotation
+    auto ptr_rotation = (float *) rotation.request().ptr;
+    Quat rotation_ = Quat(ptr_rotation[0], ptr_rotation[1], ptr_rotation[2], ptr_rotation[3]);
+
+    // add triangle mesh
     pyflex_MapShapeBuffers(g_buffers);
-    AddTriangleMesh(mesh, Vec3(), Quat(), 1.0f);
+    AddTriangleMesh(mesh, translation_, rotation_, 1.0f);
     pyflex_UnmapShapeBuffers(g_buffers);
 
     // record hideShape
