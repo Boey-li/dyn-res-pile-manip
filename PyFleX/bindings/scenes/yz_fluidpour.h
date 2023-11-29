@@ -21,7 +21,13 @@ public:
 	    *b = tmp;
 	}
 
-	void Initialize(py::array_t<float> scene_params, int thread_idx = 0)
+	void Initialize(py::array_t<float> scene_params, 
+                    py::array_t<float> vertices,
+                    py::array_t<int> stretch_edges,
+                    py::array_t<int> bend_edges,
+                    py::array_t<int> shear_edges,
+                    py::array_t<int> faces,
+                    int thread_idx = 0)
 	{
 	    // scene_params:
 	    // x, y, z, dim_x, dim_y, dim_z, x, y, z, dim_x, dim_y, dim_z, draw_mesh
@@ -58,6 +64,10 @@ public:
 		// void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius, Vec3 velocity, float invMass, bool rigid, float rigidStiffness, int phase, float jitter=0.005f)
 		CreateParticleGrid(Vec3(x, y, z), dim_x, dim_y, dim_z, restDistance, Vec3(0.0f), 1.0f, false, 0.0f, NvFlexMakePhase(0, eNvFlexPhaseSelfCollide | eNvFlexPhaseFluid), 0.005f);
 
+		// Modified by Baoyu 11/28/2023
+		// viscosity 
+		float viscosity = ptr[13];
+		std::cout << "viscosity: " << viscosity << std::endl;
 
 		g_lightDistance *= 0.5f;
 
@@ -68,7 +78,7 @@ public:
 
 		g_params.radius = radius;
 		g_params.dynamicFriction = 0.01f; 
-		g_params.viscosity = 2.0f;
+		g_params.viscosity = viscosity;
 		g_params.numIterations = 4;
 		g_params.vorticityConfinement = 40.0f;
 		g_params.fluidRestDistance = restDistance;
