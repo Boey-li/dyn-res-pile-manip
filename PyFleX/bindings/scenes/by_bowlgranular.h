@@ -64,7 +64,7 @@ public:
 		// CreateParticleShape(
 		//         GetFilePathByPlatform(bowl_path).c_str(),
 		// 		Vec3(bowl_x, bowl_y, bowl_z),
-		// 		bowl_scale, 0., radius*0.5f, Vec3(0.0f, 0.0f, 0.0f), 
+		// 		bowl_scale, 0., radius, Vec3(0.0f, 0.0f, 0.0f), 
 		// 		bowl_invMass, true, 1.0, NvFlexMakePhase(group++, 0), true, 0.0f,
 		// 		0.0f, 0.0f, Vec4(204.0f/255.0f, 204.0f/255.0f, 1.0f, 0.0f), 0.0f, false);
         

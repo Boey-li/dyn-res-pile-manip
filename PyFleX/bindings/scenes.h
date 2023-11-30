@@ -109,6 +109,7 @@ public:
 #include "scenes/by_rigidcloth.h" //33
 #include "scenes/by_ropecloth.h"  //34
 #include "scenes/by_bowlgranular.h" //35
+#include "scenes/by_bowlfluid.h" //36
 
 #include "scenes/adhesion.h"
 #include "scenes/armadilloshower.h" 

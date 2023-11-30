@@ -1,9 +1,9 @@
 
-class yz_FluidPour: public Scene
+class by_BowlFluid: public Scene
 {
 public:
 
-	yz_FluidPour(const char* name) : Scene(name) {}
+	by_BowlFluid(const char* name) : Scene(name) {}
 
 	char* make_path(char* full_path, std::string path) {
 		strcpy(full_path, getenv("PYFLEXROOT"));
@@ -33,7 +33,7 @@ public:
 	    // x, y, z, dim_x, dim_y, dim_z, x, y, z, dim_x, dim_y, dim_z, draw_mesh
 
 	    auto ptr = (float *) scene_params.request().ptr;
-	    float draw_mesh = ptr[12];
+	    float draw_mesh = ptr[8];
 
 		float radius = 0.1f;
 
@@ -53,22 +53,22 @@ public:
 		CreateParticleGrid(Vec3(x, y, z), dim_x, dim_y, dim_z, restDistance, Vec3(0.0f), 1.0f, false, 0.0f, NvFlexMakePhase(0, eNvFlexPhaseSelfCollide | eNvFlexPhaseFluid), 0.005f);
 
 
-        // create fluid block 1
-        x = ptr[6];
-	    y = ptr[7];
-	    z = ptr[8];
-	    dim_x = ptr[9];
-	    dim_y = ptr[10];
-	    dim_z = ptr[11];
+        // // create fluid block 1
+        // x = ptr[6];
+	    // y = ptr[7];
+	    // z = ptr[8];
+	    // dim_x = ptr[9];
+	    // dim_y = ptr[10];
+	    // dim_z = ptr[11];
 
-		// void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius, Vec3 velocity, float invMass, bool rigid, float rigidStiffness, int phase, float jitter=0.005f)
-		CreateParticleGrid(Vec3(x, y, z), dim_x, dim_y, dim_z, restDistance, Vec3(0.0f), 1.0f, false, 0.0f, NvFlexMakePhase(0, eNvFlexPhaseSelfCollide | eNvFlexPhaseFluid), 0.005f);
+		// // void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius, Vec3 velocity, float invMass, bool rigid, float rigidStiffness, int phase, float jitter=0.005f)
+		// CreateParticleGrid(Vec3(x, y, z), dim_x, dim_y, dim_z, restDistance, Vec3(0.0f), 1.0f, false, 0.0f, NvFlexMakePhase(0, eNvFlexPhaseSelfCollide | eNvFlexPhaseFluid), 0.005f);
 
 		// Modified by Baoyu 11/28/2023
 		// viscosity 
-		float viscosity = ptr[13];
+		float viscosity = ptr[6];
 		// std::cout << "viscosity: " << viscosity << std::endl;
-		float cohesion = ptr[14];
+		float cohesion = ptr[7];
 
 		g_lightDistance *= 0.5f;
 
