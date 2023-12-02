@@ -234,11 +234,11 @@ public:
 		mesh->Normalize();
 		mesh->Transform(ScaleMatrix(instance.mScale*mRadius));
 		
-		// mesh->Transform(RotationMatrix(instance.mRotation)); 
-		// mesh->Transform(TranslationMatrix(Point3(instance.mTranslation)));
-		
+		mesh->Transform(RotationMatrix(instance.mRotation)); 
 		mesh->Transform(TranslationMatrix(Point3(instance.mTranslation)));
-		mesh->Transform(RotationMatrix(instance.mRotation));
+		
+		// mesh->Transform(TranslationMatrix(Point3(instance.mTranslation)));
+		// mesh->Transform(RotationMatrix(instance.mRotation));
 		
 
 		renderingInstance.mMesh = mesh;

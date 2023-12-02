@@ -33,42 +33,30 @@ public:
 	    // x, y, z, dim_x, dim_y, dim_z, x, y, z, dim_x, dim_y, dim_z, draw_mesh
 
 	    auto ptr = (float *) scene_params.request().ptr;
-	    float draw_mesh = ptr[8];
-
-		float radius = 0.1f;
+		
+		float radius = ptr[0];
 
 		g_numSolidParticles = g_buffers->positions.size();
 
 		float restDistance = radius*0.55f;
 
         // create fluid block 0
-        float x = ptr[0];
-	    float y = ptr[1];
-	    float z = ptr[2];
-	    float dim_x = ptr[3];
-	    float dim_y = ptr[4];
-	    float dim_z = ptr[5];
+        float x = ptr[1];
+	    float y = ptr[2];
+	    float z = ptr[3];
+	    float dim_x = ptr[4];
+	    float dim_y = ptr[5];
+	    float dim_z = ptr[6];
+		float draw_mesh = ptr[7];
 
 		// void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius, Vec3 velocity, float invMass, bool rigid, float rigidStiffness, int phase, float jitter=0.005f)
 		CreateParticleGrid(Vec3(x, y, z), dim_x, dim_y, dim_z, restDistance, Vec3(0.0f), 1.0f, false, 0.0f, NvFlexMakePhase(0, eNvFlexPhaseSelfCollide | eNvFlexPhaseFluid), 0.005f);
 
-
-        // // create fluid block 1
-        // x = ptr[6];
-	    // y = ptr[7];
-	    // z = ptr[8];
-	    // dim_x = ptr[9];
-	    // dim_y = ptr[10];
-	    // dim_z = ptr[11];
-
-		// // void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius, Vec3 velocity, float invMass, bool rigid, float rigidStiffness, int phase, float jitter=0.005f)
-		// CreateParticleGrid(Vec3(x, y, z), dim_x, dim_y, dim_z, restDistance, Vec3(0.0f), 1.0f, false, 0.0f, NvFlexMakePhase(0, eNvFlexPhaseSelfCollide | eNvFlexPhaseFluid), 0.005f);
-
-		// Modified by Baoyu 11/28/2023
 		// viscosity 
-		float viscosity = ptr[6];
+		float viscosity = ptr[8];
 		// std::cout << "viscosity: " << viscosity << std::endl;
-		float cohesion = ptr[7];
+		float cohesion = ptr[9];
+		float shapeCollisionMargin = ptr[10];
 
 		g_lightDistance *= 0.5f;
 
@@ -87,6 +75,7 @@ public:
 		g_params.relaxationFactor = 0.0f;
 		g_params.cohesion = cohesion; //0.02f
 		g_params.collisionDistance = 0.01f;		
+		g_params.shapeCollisionMargin = shapeCollisionMargin; 
 
 		g_maxDiffuseParticles = 0;
 		g_diffuseScale = 0.5f;
