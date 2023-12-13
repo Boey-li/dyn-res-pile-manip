@@ -93,10 +93,10 @@ public:
 				invMass, true, rigidStiffness, NvFlexMakePhase(group++, 0), true, 0.0f,
 				0.0f, 0.0f, Vec4(0.0f), 0.0f, true);
 			
-		for (int i = 0; i < g_buffers->rigidOffsets.size(); ++i)
-		{
-			std::cout << "g_buffers->rigidOffsets" << g_buffers->rigidOffsets[i] << std::endl; 
-		}
+		// for (int i = 0; i < g_buffers->rigidOffsets.size(); ++i)
+		// {
+		// 	std::cout << "g_buffers->rigidOffsets" << g_buffers->rigidOffsets[i] << std::endl; 
+		// }
 		
 		// add carrots
 		int num_x = ptr[12];
@@ -117,17 +117,18 @@ public:
 				for (int y_idx = 0; y_idx < num_y; y_idx++) {
 				int num_planes = Rand(6,12);
 				Mesh* m = CreateRandomConvexMesh(num_planes, 5.0f, 10.0f);
-				CreateParticleShape(m, Vec3(pos_x + float(x_idx) * pos_diff, pos_y + float(y_idx) * pos_diff, pos_z + float(z_idx) * pos_diff), 0.1f, 0.0f, 
-									radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 
+				CreateParticleShape(m, Vec3(pos_x + float(x_idx) * pos_diff, pos_y + float(y_idx) * pos_diff, pos_z + float(z_idx) * pos_diff), 
+									granular_scale, 0.0f, radius*1.001f,
+									0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 
 									0.0f, Vec4(237.0f/255.0f, 145.0f/255.0f, 33.0f/255.0f, 1.0f));	
 				}
 			}
 		}
 
-		for (int i = 0; i < g_buffers->rigidOffsets.size(); ++i)
-		{
-			std::cout << "g_buffers->rigidOffsets" << g_buffers->rigidOffsets[i] << std::endl; 
-		}
+		// for (int i = 0; i < g_buffers->rigidOffsets.size(); ++i)
+		// {
+		// 	std::cout << "g_buffers->rigidOffsets" << g_buffers->rigidOffsets[i] << std::endl; 
+		// }
 
 		g_numSolidParticles = g_buffers->positions.size();
 		g_numSubsteps = 2;

@@ -111,6 +111,8 @@ public:
 #include "scenes/by_bowlgranular.h" //35
 #include "scenes/by_bowlfluid.h" //36
 
+#include "softgym_scenes/softgym_rope.h" //37
+
 #include "scenes/adhesion.h"
 #include "scenes/armadilloshower.h" 
 #include "scenes/bananas.h"

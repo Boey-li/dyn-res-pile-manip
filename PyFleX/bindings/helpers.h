@@ -1308,7 +1308,8 @@ void CreateSpringGrid(Vec3 lower, int dx, int dy, int dz, float radius, int phas
 	}	
 }
 
-void CreateRope(Rope& rope, Vec3 start, Vec3 dir, float stiffness, int segments, float length, int phase, float spiralAngle=0.0f, float invmass=1.0f, float give=0.075f)
+void CreateRope(Rope& rope, Vec3 start, Vec3 dir, float stiffness, int segments, float length, int phase, float spiralAngle=0.0f, float invmass=1.0f, 
+				float give=0.075f, float bendingStiffness=0.8)
 {
 	rope.mIndices.push_back(int(g_buffers->positions.size()));
 
@@ -1356,8 +1357,10 @@ void CreateRope(Rope& rope, Vec3 start, Vec3 dir, float stiffness, int segments,
 			//CreateSpring(prev-3, prev+1, -0.25f);
 		
 		// bending spring
-		if (i > 0)
-			CreateSpring(prev-1, prev+1, stiffness*0.5f, give);
+		if (i > 0) {
+			// CreateSpring(prev-1, prev+1, stiffness*0.5f, give);
+			CreateSpring(prev-1, prev+1, bendingStiffness*0.5f, give);
+		}
 	}
 }
 

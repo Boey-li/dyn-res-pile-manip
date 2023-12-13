@@ -57,6 +57,7 @@ public:
 		// std::cout << "viscosity: " << viscosity << std::endl;
 		float cohesion = ptr[9];
 		float shapeCollisionMargin = ptr[10];
+		float dynamicFriction = ptr[11];
 
 		g_lightDistance *= 0.5f;
 
@@ -66,7 +67,7 @@ public:
 		g_numSubsteps = 2;
 
 		g_params.radius = radius;
-		g_params.dynamicFriction = 0.01f; 
+		g_params.dynamicFriction = dynamicFriction; 
 		g_params.viscosity = viscosity;
 		g_params.numIterations = 4;
 		g_params.vorticityConfinement = 40.0f;

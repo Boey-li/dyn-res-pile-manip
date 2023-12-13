@@ -33,7 +33,10 @@ public:
 		float pos_z = ptr[7];
 		float granular_dis = ptr[8];
         int draw_mesh = ptr[9];
+		
 		float shapeCollisionMargin = ptr[10];
+		float collisionDistance = ptr[11];
+		float dynamic_friction = ptr[12]; 
 		
 		// void CreateParticleShape(const Mesh* srcMesh, 
 		// Vec3 lower, Vec3 scale, float rotation, float spacing, 
@@ -56,16 +59,17 @@ public:
 			}
 		}
 
-        g_numSubsteps = 3;
+        g_numSubsteps = 12;
 
 		g_params.numIterations = 6;
 		g_params.radius = radius;
-		g_params.dynamicFriction = 0.4f;
+		g_params.dynamicFriction = dynamic_friction;
 		g_params.dissipation = 0.001f;
 		g_params.sleepThreshold = g_params.radius*0.2f;
 		g_params.relaxationFactor = 1.3f;
 		g_params.restitution = 0.0f;
 		g_params.shapeCollisionMargin = shapeCollisionMargin; //0.01f
+		g_params.collisionDistance = collisionDistance;
 
 		if (draw_mesh) {
 			g_drawMesh = true;

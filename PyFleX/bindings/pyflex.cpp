@@ -2528,6 +2528,9 @@ void pyflex_init(bool headless=false) {
     g_scenes.push_back(new by_BowlGranular("Bowl Granular")); //35
     g_scenes.push_back(new by_BowlFluid("Bowl Fluid")); //36
 
+    // copied from softgym 37
+    g_scenes.push_back(new SoftgymRope("Softgym Rope"));
+
 
     /*
     // opening scene
@@ -3055,6 +3058,21 @@ void pyflex_add_mesh(const char *s, float scaling, int hideShape, py::array_t<fl
     // record shape color
     auto ptr = (float *) color.request().ptr;
     g_shapeColors.push_back(Vec3(ptr[0], ptr[1], ptr[2]));
+}
+
+// Copied from softgym
+void pyflex_add_sphere(float radius, py::array_t<float> position_, py::array_t<float> quat_) {
+    pyflex_MapShapeBuffers(g_buffers);
+
+    auto ptr_center = (float *) position_.request().ptr;
+    Vec3 center = Vec3(ptr_center[0], ptr_center[1], ptr_center[2]);
+
+    auto ptr_quat = (float *) quat_.request().ptr;
+    Quat quat = Quat(ptr_quat[0], ptr_quat[1], ptr_quat[2], ptr_quat[3]);
+
+    AddSphere(radius, center, quat);
+
+    pyflex_UnmapShapeBuffers(g_buffers);
 }
 
 int pyflex_get_n_particles() {
@@ -3915,6 +3933,7 @@ PYBIND11_MODULE(pyflex, m) {
     m.def("add_box", &pyflex_add_box, "Add box to the scene");
     m.def("add_mesh", &pyflex_add_mesh, "Add mesh to the scene");
     m.def("add_capsule", &pyflex_add_capsule, "Add capsule to the scene");
+    m.def("add_sphere", &pyflex_add_sphere, "Add sphere to the scene");
 
     m.def("get_n_particles", &pyflex_get_n_particles, "Get the number of particles");
     m.def("get_n_shapes", &pyflex_get_n_shapes, "Get the number of shapes");
