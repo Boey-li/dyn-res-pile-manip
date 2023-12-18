@@ -37,6 +37,9 @@ public:
 		float shapeCollisionMargin = ptr[10];
 		float collisionDistance = ptr[11];
 		float dynamic_friction = ptr[12]; 
+		float mass = ptr[13];
+
+		float inv_mass = 1.0f/mass;
 		
 		// void CreateParticleShape(const Mesh* srcMesh, 
 		// Vec3 lower, Vec3 scale, float rotation, float spacing, 
@@ -52,8 +55,9 @@ public:
 				int num_planes = Rand(6,12);
 				Mesh* m = CreateRandomConvexMesh(num_planes, 5.0f, 10.0f);
 				CreateParticleShape(m, Vec3(pos_x + float(x_idx) * pos_diff, pos_y + float(y_idx) * pos_diff, pos_z + float(z_idx) * pos_diff), 
-									granular_scale, 0.0f, 
-									radius*1.001f, 0.0f, 0.2f, true, 0.8f, NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 
+									granular_scale, 0.0f, radius*1.001f, 
+									0.0f, inv_mass, true, 0.8f, 
+									NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 
 									0.0f, Vec4(237.0f/255.0f, 145.0f/255.0f, 33.0f/255.0f, 1.0f));	
 				}
 			}
