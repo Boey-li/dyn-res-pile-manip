@@ -233,11 +233,9 @@ public:
 		Mesh* mesh = ImportMesh(GetFilePathByPlatform(instance.mFile).c_str(), texture);
 		mesh->Normalize();
 		mesh->Transform(ScaleMatrix(instance.mScale*mRadius));
-		
 		mesh->Transform(RotationMatrix(instance.mRotation)); 
 		mesh->Transform(TranslationMatrix(Point3(instance.mTranslation)));
-		
-		// mesh->Transform(TranslationMatrix(Point3(instance.mTranslation)));
+		// mesh->Transform(TranslationMatrix(Point3(instance.mTranslation))*ScaleMatrix(instance.mScale*mRadius));
 		// mesh->Transform(RotationMatrix(instance.mRotation));
 		
 

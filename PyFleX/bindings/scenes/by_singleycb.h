@@ -45,6 +45,8 @@ public:
 
 		if (type == 1)
 			make_path(path, "/data/box.ply");
+		else if (type == 2)
+			make_path(path, "/data/rigid/cube_mesh.ply");
 		else if (type == 3)
 			make_path(path, "/data/ycb/03_cracker_box.obj");
 		else if (type == 4)
@@ -94,8 +96,6 @@ public:
 				invMass, true, rigidStiffness, NvFlexMakePhase(group++, 0), true, 0.0f,
 				0.0f, 0.0f, Vec4(0.0f), springStiffness, true);
 
-		float restDistance = radius*0.55f;
-
 		g_numSolidParticles = g_buffers->positions.size();
 		g_numSubsteps = 2;
 
@@ -112,6 +112,7 @@ public:
 		g_params.relaxationFactor = 1.f;
 		g_params.damping = 0.14f;
 
+		float restDistance = radius*0.55f;
 		Emitter e1;
 		e1.mDir = Vec3(1.0f, 0.0f, 0.0f);
 		e1.mRight = Vec3(0.0f, 0.0f, -1.0f);
