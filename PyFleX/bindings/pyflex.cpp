@@ -2518,18 +2518,18 @@ void pyflex_init(bool headless=false) {
     g_scenes.push_back(new by_SoftRope("Soft Rope")); //26
     g_scenes.push_back(new by_Cloth("Cloth")); //27
     g_scenes.push_back(new by_MultiYCB("Multi YCB")); //28
-    g_scenes.push_back(new SoftgymCloth("Softgym Flag Cloth")); //29
+    g_scenes.push_back(new SoftgymCloth("Softgym Cloth"));  //29
     g_scenes.push_back(new SoftgymCloth2("Softgym Cloth")); //30
 
     g_scenes.push_back(new by_RigidRope("Rigid Rope")); //31
     g_scenes.push_back(new by_RigidGranular("Rigid Granular")); //32
     g_scenes.push_back(new by_RigidCloth("Rigid Cloth")); //33
     g_scenes.push_back(new by_RopeCloth("Rope Cloth")); //34
-    g_scenes.push_back(new by_BowlGranular("Bowl Granular")); //35
+    g_scenes.push_back(new by_Granular("Bowl Granular")); //35
     g_scenes.push_back(new by_BowlFluid("Bowl Fluid")); //36
 
     // copied from softgym 37
-    g_scenes.push_back(new SoftgymRope("Softgym Rope"));
+    g_scenes.push_back(new by_SoftBody("Soft Body")); //37
 
 
     /*

@@ -108,10 +108,10 @@ public:
 #include "scenes/by_rigidgranular.h" //32
 #include "scenes/by_rigidcloth.h" //33
 #include "scenes/by_ropecloth.h"  //34
-#include "scenes/by_bowlgranular.h" //35
+#include "scenes/by_granular.h" //35
 #include "scenes/by_bowlfluid.h" //36
 
-#include "softgym_scenes/softgym_rope.h" //37
+#include "scenes/by_softbody.h" //37
 
 #include "scenes/adhesion.h"
 #include "scenes/armadilloshower.h" 

@@ -1,9 +1,9 @@
 
-class by_BowlGranular : public Scene
+class by_Granular : public Scene
 {
 public:
 
-	by_BowlGranular(const char* name) : Scene(name) {}
+	by_Granular(const char* name) : Scene(name) {}
 
     char* make_path(char* full_path, std::string path) {
 		strcpy(full_path, getenv("PYFLEXROOT"));
@@ -39,6 +39,11 @@ public:
 		float dynamic_friction = ptr[12]; 
 		float mass = ptr[13];
 
+		int regular_shape = ptr[14];
+		float shape_min_dist = ptr[15]; //6
+		float shape_max_dist = ptr[16]; //10
+
+
 		float inv_mass = 1.0f/mass;
 		
 		// void CreateParticleShape(const Mesh* srcMesh, 
@@ -51,9 +56,12 @@ public:
         // add carrots
 		for (int x_idx = 0; x_idx < num_x; x_idx++){
 			for (int z_idx = 0; z_idx < num_z; z_idx++) {
+				// if ((x_idx - (num_x-1)*1.0/2.0) * (x_idx - (num_x-1)*1.0/2.0) + (z_idx - (num_z-1)*1.0/2.0) * (z_idx - (num_z-1)*1.0/2.0) > (num_x*1.0/2.0) * (num_z*1.0/2.0)) {
+				// 	continue;
+				// }
 				for (int y_idx = 0; y_idx < num_y; y_idx++) {
-				int num_planes = Rand(6,12);
-				Mesh* m = CreateRandomConvexMesh(num_planes, 5.0f, 10.0f);
+				int num_planes = Rand(6,10); //6-12
+				Mesh* m = CreateRandomConvexMesh(num_planes, shape_min_dist, shape_max_dist, regular_shape);
 				CreateParticleShape(m, Vec3(pos_x + float(x_idx) * pos_diff, pos_y + float(y_idx) * pos_diff, pos_z + float(z_idx) * pos_diff), 
 									granular_scale, 0.0f, radius*1.001f, 
 									0.0f, inv_mass, true, 0.8f, 

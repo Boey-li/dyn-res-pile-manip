@@ -75,7 +75,8 @@ void GetParticleBounds(Vec3& lower, Vec3& upper)
 }
 
 
-void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius, Vec3 velocity, float invMass, bool rigid, float rigidStiffness, int phase, float jitter=0.005f)
+void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius, Vec3 velocity, float invMass, bool rigid, 
+						float rigidStiffness, int phase, float jitter=0.005f)
 {
 	if (rigid && g_buffers->rigidIndices.empty())
 		g_buffers->rigidOffsets.push_back(0);
@@ -178,6 +179,7 @@ void CreateParticleShape(const Mesh* srcMesh, Vec3 lower, Vec3 scale, float rota
 
 		// put mesh at the origin and scale to specified size
 		Matrix44 xform = ScaleMatrix(scale/maxEdge)*TranslationMatrix(Point3(-meshLower));
+		// Matrix44 xform = ScaleMatrix(scale)*TranslationMatrix(Point3(-meshLower));
 
 		mesh.Transform(xform);
 		mesh.GetBounds(meshLower, meshUpper);
@@ -2161,11 +2163,10 @@ void GetShapeBounds(Vec3& totalLower, Vec3& totalUpper)
 }
 
 // written by Yixuan
-Mesh* CreateRandomConvexMesh(int numPlanes, float minDist, float maxDist) {
+Mesh* CreateRandomConvexMesh(int numPlanes, float minDist, float maxDist, bool regular_shape = false) {
 	Mesh* mesh = new Mesh();
 
 	const int maxPlanes = 12;
-
 	// 12-kdop
 	const Vec3 directions[maxPlanes] = { 
 		Vec3(1.0f, 0.0f, 0.0f),
@@ -2180,7 +2181,20 @@ Mesh* CreateRandomConvexMesh(int numPlanes, float minDist, float maxDist) {
 		Vec3(-1.0f, 0.0f, -1.0f),
 		Vec3(0.0f, 1.0f, 1.0f),
 		Vec3(0.0f, -1.0f, -1.0f),
-	 };
+	};
+
+	if (regular_shape) {
+		numPlanes = 6;
+		// 6-kdop
+		const Vec3 directions[maxPlanes] = { 
+			Vec3(1.0f, 0.0f, 0.0f),
+			Vec3(0.0f, 1.0f, 0.0f),
+			Vec3(0.0f, 0.0f, 1.0f),
+			Vec3(-1.0f, 0.0f, 0.0f),
+			Vec3(0.0f, -1.0f, 0.0f),
+			Vec3(0.0f, 0.0f, -1.0f),
+		};
+	}
 
 	numPlanes = Clamp(6, numPlanes, maxPlanes);
 
@@ -2236,3 +2250,4 @@ Mesh* CreateRandomConvexMesh(int numPlanes, float minDist, float maxDist) {
 	}
 	return mesh;
 }
+

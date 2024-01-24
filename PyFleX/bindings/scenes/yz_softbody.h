@@ -178,7 +178,14 @@ public:
         return LO + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/(HI-LO)));
     }
 
-	virtual void Initialize(py::array_t<float> scene_params, int thread_idx = 0)
+	// virtual void Initialize(py::array_t<float> scene_params, int thread_idx = 0)
+    void Initialize(py::array_t<float> scene_params, 
+                    py::array_t<float> vertices,
+                    py::array_t<int> stretch_edges,
+                    py::array_t<int> bend_edges,
+                    py::array_t<int> shear_edges,
+                    py::array_t<int> faces,
+                    int thread_idx = 0)
 	{
 	    // scene_params:
 	    // x, y, z, clusterStiffness, clusterPlasticThreshold, clusterPlasticCreep
@@ -217,7 +224,7 @@ public:
         stackBox.mClusterSpacing = 10.0f;
         stackBox.mClusterRadius = 0.0f;
         stackBox.mClusterStiffness = clusterStiffness;
-        stackBox.mGlobalStiffness = 0.0f;
+        stackBox.mGlobalStiffness = 1.0f;
         stackBox.mClusterPlasticThreshold = clusterPlasticThreshold;
         stackBox.mClusterPlasticCreep = clusterPlasticCreep;
         stackBox.mTranslation.x = -x/20.0f;
