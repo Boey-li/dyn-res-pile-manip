@@ -753,10 +753,13 @@ void Init(int scene, py::array_t<float> scene_params,
     StartGpuWork();
     // g_scenes[g_scene]->Initialize(scene_params, thread_idx);
     g_scenes[g_scene]->Initialize(scene_params, vertices, stretch_edges, bend_edges, shear_edges, faces, thread_idx);
+    std::cout << "scene initialized" << std::endl;
     EndGpuWork();
 
     uint32_t numParticles = g_buffers->positions.size();
     uint32_t maxParticles = numParticles + g_numExtraParticles*g_numExtraMultiplier;
+    std::cout << "numParticles: " << numParticles << std::endl;
+    std::cout << "maxParticles: " << maxParticles << std::endl;
 
     if (g_params.solidRestDistance == 0.0f)
         g_params.solidRestDistance = g_params.radius;
@@ -780,10 +783,12 @@ void Init(int scene, py::array_t<float> scene_params,
     // calculate particle bounds
     Vec3 particleLower, particleUpper;
     GetParticleBounds(particleLower, particleUpper);
+    std::cout << "particleLower: " << particleLower.x << ", " << particleLower.y << ", " << particleLower.z << std::endl;
 
     // accommodate shapes
     Vec3 shapeLower, shapeUpper;
     GetShapeBounds(shapeLower, shapeUpper);
+    std::cout << "shapeLower: " << shapeLower.x << ", " << shapeLower.y << ", " << shapeLower.z << std::endl;
 
     // update bounds
     g_sceneLower = Min(Min(g_sceneLower, particleLower), shapeLower);
@@ -944,6 +949,7 @@ void Init(int scene, py::array_t<float> scene_params,
 
     // rigids
     if (g_buffers->rigidOffsets.size()) {
+        // std::cout << "g_buffers->rigidOffsets.size(): " << g_buffers->rigidOffsets.size() << std::endl;
         NvFlexSetRigids(g_solver, g_buffers->rigidOffsets.buffer, g_buffers->rigidIndices.buffer, g_buffers->rigidLocalPositions.buffer, g_buffers->rigidLocalNormals.buffer, g_buffers->rigidCoefficients.buffer, g_buffers->rigidPlasticThresholds.buffer, g_buffers->rigidPlasticCreeps.buffer, g_buffers->rigidRotations.buffer, g_buffers->rigidTranslations.buffer, g_buffers->rigidOffsets.size() - 1, g_buffers->rigidIndices.size());
     }
 
@@ -1190,6 +1196,9 @@ void RenderScene(int draw_planes, int draw_objects, int draw_shadow) {
     const int numParticles = NvFlexGetActiveCount(g_solver);
     const int numDiffuse = g_buffers->diffuseCount[0];
 
+    // std::cout << "numParticles: " << numParticles << std::endl;
+    // std::cout << "numDiffuse: " << numDiffuse << std::endl;
+
     //---------------------------------------------------
     // use VBO buffer wrappers to allow Flex to write directly to the OpenGL buffers
     // Flex will take care of any CUDA interop mapping/unmapping during the get() operations
@@ -1278,6 +1287,8 @@ void RenderScene(int draw_planes, int draw_objects, int draw_shadow) {
 
     // radius used for drawing
     float radius = Max(g_params.solidRestDistance, g_params.fluidRestDistance)*0.5f*g_pointScale;
+
+    //std::cout << "g_meshSkinIndices.size(): " << g_meshSkinIndices.size() << std::endl;
 
     //-------------------------------------
     // shadowing pass
@@ -2530,6 +2541,7 @@ void pyflex_init(bool headless=false) {
 
     // copied from softgym 37
     g_scenes.push_back(new by_SoftBody("Soft Body")); //37
+    g_scenes.push_back(new by_RopeGranular("Rope Granular")); //38
 
 
     /*

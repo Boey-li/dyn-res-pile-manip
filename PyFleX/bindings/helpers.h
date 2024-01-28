@@ -414,17 +414,31 @@ void SkinMesh()
 	{
 		int startVertex = 0;
 
-		for (int r=0; r < g_buffers->rigidRotations.size(); ++r)
+		//std::cout << "g_buffers->rigidMeshSize.size() = " << g_buffers->rigidMeshSize.size() << std::endl;
+		//std::cout << "g_buffers->rigidRotations.size() = " << g_buffers->rigidRotations.size() << std::endl;
+		//std::cout << "g_buffers->rigidTranslations.size() = " << g_buffers->rigidTranslations.size() << std::endl;
+		//std::cout << "g_buffers->rigidLocalNormals.size() = " << g_buffers->rigidLocalNormals.size() << std::endl;
+		//std::cout << "g_meshSkinIndices.size() = " << g_meshSkinIndices.size() << std::endl;
+		//std::cout << "g_meshSkinWeights.size() = " << g_meshSkinWeights.size() << std::endl;
+		//std::cout << "g_mesh->m_positions.size() = " << g_mesh->m_positions.size() << std::endl;
+
+		for (int r=0; r < g_buffers->rigidMeshSize.size(); ++r)
 		{
+			//std::cout << "r = " << r << std::endl;
+			//std::cout << "g_buffers->rigidMeshSize[r] = " << g_buffers->rigidMeshSize[r] << std::endl;
+			//std::cout << "g_buffers->rigidRotations[r] = " << g_buffers->rigidRotations[r] << std::endl;
 			const Matrix33 rotation = g_buffers->rigidRotations[r];
 			const int numVertices = g_buffers->rigidMeshSize[r];
+			//std::cout << "numVertices = " << numVertices << std::endl;
 
 			for (int i=startVertex; i < numVertices+startVertex; ++i)
 			{
+				//std::cout << "i = " << i << std::endl;
 				Vec3 skinPos;
 
 				for (int w=0; w < 4; ++w)
 				{
+					//std::cout << "w = " << w << std::endl;
 					// small shapes can have < 4 particles
 					if (g_meshSkinIndices[i*4+w] > -1)
 					{
@@ -435,15 +449,23 @@ void SkinMesh()
 
 						skinPos += (rotation*(g_meshRestPositions[i]-Point3(g_buffers->restPositions[index])) + Vec3(g_buffers->positions[index]))*weight;
 					}
+
+					// std::cout << "i = " << i << ", w = " << w << ", skinPos = " << skinPos << std::endl;
 				}
 
 				g_mesh->m_positions[i] = Point3(skinPos);
+				// std::cout << "i = " << i << ", numVertices = " << numVertices << ", g_mesh->m_positions[i] = " << g_mesh->m_positions[i] << std::endl;
 			}
+			//std::cout << "rigidRotations size = " << g_buffers->rigidRotations.size() << std::endl;
 
 			startVertex += numVertices;
 		}
 
+		//std::cout << "before g_mesh->CalculateNormals()" << std::endl;
+
 		g_mesh->CalculateNormals();
+
+		//std::cout << "after g_mesh->CalculateNormals()" << std::endl;
 	}
 }
 

@@ -1,8 +1,8 @@
-class by_RigidRope: public Scene
+class by_RopeGranular: public Scene
 {
 
 public:
-	by_RigidRope(const char* name) :
+	by_RopeGranular(const char* name) :
 		Scene(name),
 		mRadius(0.1f),
 		mRelaxationFactor(1.0f),

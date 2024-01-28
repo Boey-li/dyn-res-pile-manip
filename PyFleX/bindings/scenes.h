@@ -112,6 +112,7 @@ public:
 #include "scenes/by_bowlfluid.h" //36
 
 #include "scenes/by_softbody.h" //37
+#include "scenes/by_ropegranular.h" //38
 
 #include "scenes/adhesion.h"
 #include "scenes/armadilloshower.h" 

@@ -58,6 +58,11 @@
         "cfenv": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "bit": "cpp"
-    }
+        "bit": "cpp",
+        "strstream": "cpp",
+        "unordered_set": "cpp",
+        "typeindex": "cpp",
+        "variant": "cpp"
+    },
+    "ros.distro": "noetic"
 }
