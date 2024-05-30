@@ -128,30 +128,22 @@ public:
 		float radius = ptr[0];
 		mRadius = radius;
 
-		// rigid parameters
-		float type = ptr[1];
-		float dimx_rigid = ptr[2];
-		float dimy_rigid = ptr[3];
-		float dimz_rigid = ptr[4];
-		float scale_rigid = ptr[5];
-		float mass_rigid = ptr[6];
-		float rotation = ptr[7];
-
 		// rope parameters
-		Vec3 rope_scale = Vec3(ptr[8], ptr[9], ptr[10]);
-		Vec3 rope_trans = Vec3(ptr[11], ptr[12], ptr[13]);
+		Vec3 rope_scale = Vec3(ptr[1], ptr[2], ptr[3]);
+		Vec3 rope_trans = Vec3(ptr[4], ptr[5], ptr[6]);
 
-		float clusterSpacing = ptr[14];
-		float clusterRadius = ptr[15];
-		float clusterStiffness = ptr[16];
+		float clusterSpacing = ptr[7];
+		float clusterRadius = 0.0f;
+		float clusterStiffness = 0.55f;
 
-		Vec3 rotate_v = Vec3(ptr[17], ptr[18], ptr[19]);
-		float rotate_w = ptr[20];
+		float globalStiffness = ptr[8];
+
+		Vec3 rotate_v = Vec3(ptr[9], ptr[10], ptr[11]);
+		float rotate_w = ptr[12];
 		Quat rope_rotate = Quat(rotate_v, rotate_w);
 
 		float linkRadius = 0.0f;
 		float linkStiffness = 1.0f;
-		float globalStiffness = 0.0f;
 		float surfaceSampling = 0.0f;
 		float volumeSampling = 4.0f;
 		float skinningFalloff = 5.0f;
@@ -163,60 +155,29 @@ public:
 		mRelaxationFactor = relaxationFactor;
 		plasticDeformation = false;
 
+		// add granular objects
+		int num_x = ptr[13];
+		int num_y = ptr[14];
+		int num_z = ptr[15];
+		float granular_scale = ptr[16];
+		float pos_x = ptr[17];
+		float pos_y = ptr[18];
+		float pos_z = ptr[19];
+		float granular_dis = ptr[20];
+
+		int regular_shape = ptr[21];
+		float shape_min_dist = ptr[22]; //6
+		float shape_max_dist = ptr[23]; //10
+
+		float granular_mass = ptr[24];
+
 		// others
-		float dynamic_friction = ptr[21];
-		float static_friction = ptr[22];
-		float viscosity = ptr[23];
-		float draw_mesh = ptr[24];
+		float dynamic_friction = ptr[25];
+		float static_friction = ptr[26];
+		float draw_mesh = ptr[27];
 
-		// add rigid bodies
-		float rigid_invMass = 1.0f/mass_rigid;
-		int group = 0;
-		float s = radius*0.5f;
-
-		char path[100];
-		if (type == 1)
-			make_path(path, "/data/box.ply");
-		else if (type == 3)
-			make_path(path, "/data/ycb/03_cracker_box.obj");
-		else if (type == 4)
-			make_path(path, "/data/ycb/04_sugar_box.obj");
-		else if (type == 5)
-			make_path(path, "/data/ycb/05_tomato_soup_can.obj");
-		else if (type == 6)
-			make_path(path, "/data/ycb/06_mustard_bottle.obj");
-		else if (type == 7)
-			make_path(path, "/data/ycb/07_tuna_fish_can.obj");
-		else if (type == 8)
-			make_path(path, "/data/ycb/08_pudding_box.obj");
-		else if (type == 9)
-			make_path(path, "/data/ycb/09_gelatin_box.obj");
-		else if (type == 10)
-			make_path(path, "/data/ycb/12_strawberry.obj");
-		else if (type == 11)
-			make_path(path, "/data/ycb/13_apple.obj");
-		else if (type == 12)
-			make_path(path, "/data/ycb/14_lemon.obj");
-		else if (type == 13)
-			make_path(path, "/data/ycb/15_peach.obj");	
-		else if (type == 14)
-			make_path(path, "/data/ycb/16_pear.obj");
-		else if (type == 15)
-			make_path(path, "/data/ycb/17_orange.obj");
-		else if (type == 16)
-			make_path(path, "/data/ycb/19_pitcher_base.obj");
-		else if (type == 17)
-			make_path(path, "/data/ycb/21_bleach_cleanser.obj");
-		else if (type == 18)
-			make_path(path, "/data/ycb/24_bowl.obj");
-		else if (type == 19)
-			make_path(path, "/data/ycb/35_power_drill.obj");
-		else if (type == 20)
-			make_path(path, "/data/ycb/36_wood_block.obj");
-		
-		
-	
-		// g_numSolidParticles = g_buffers->positions.size();
+		float shapeCollisionMargin = ptr[28]; //0.01f;
+		float collisionDistance = ptr[29]; //0.03f;
 
 		// add rope
 		// int ropeStart = g_buffers->positions.size();
@@ -239,13 +200,27 @@ public:
 		rope.mClusterPlasticCreep = clusterPlasticCreep;
 		AddInstance(rope);
 		
-		// rigid
-		CreateParticleShape(
-		        GetFilePathByPlatform(path).c_str(),
-				Vec3(dimx_rigid, dimy_rigid, dimz_rigid),
-				scale_rigid, rotation, s, Vec3(0.0f, 0.0f, 0.0f), 
-				rigid_invMass, true, 1.0, NvFlexMakePhase(group++, 0), true, 0.0f,
-				0.0f, 0.0f, Vec4(0.0f), 0.0f, true);
+		// granular objects
+		int group = 0;
+		float inv_mass = 1./granular_mass;
+        float pos_diff = granular_scale + granular_dis;
+        // add carrots
+		for (int x_idx = 0; x_idx < num_x; x_idx++){
+			for (int z_idx = 0; z_idx < num_z; z_idx++) {
+				// if ((x_idx - (num_x-1)*1.0/2.0) * (x_idx - (num_x-1)*1.0/2.0) + (z_idx - (num_z-1)*1.0/2.0) * (z_idx - (num_z-1)*1.0/2.0) > (num_x*1.0/2.0) * (num_z*1.0/2.0)) {
+				// 	continue;
+				// }
+				for (int y_idx = 0; y_idx < num_y; y_idx++) {
+				int num_planes = Rand(6,10); //6-12
+				Mesh* m = CreateRandomConvexMesh(num_planes, shape_min_dist, shape_max_dist, regular_shape);
+				CreateParticleShape(m, Vec3(pos_x + float(x_idx) * pos_diff, pos_y + float(y_idx) * pos_diff, pos_z + float(z_idx) * pos_diff), 
+									granular_scale, 0.0f, radius*1.001f, 
+									0.0f, inv_mass, true, 0.8f, 
+									NvFlexMakePhase(group++, 0), true, radius*0.1f, 0.0f, 
+									0.0f, Vec4(237.0f/255.0f, 145.0f/255.0f, 33.0f/255.0f, 1.0f));	
+				}
+			}
+		}
 
 		// build soft bodies
 		if (g_buffers->rigidIndices.empty())
@@ -271,7 +246,7 @@ public:
 		g_params.radius = radius;
 		g_params.dynamicFriction = dynamic_friction;
 		g_params.staticFriction = static_friction;
-		g_params.viscosity = viscosity;
+		// g_params.viscosity = viscosity;
 
 		g_params.particleCollisionMargin = g_params.radius*0.25f;	// 5% collision margin
 		g_params.sleepThreshold = g_params.radius*0.25f;
@@ -279,6 +254,9 @@ public:
 		g_params.restitution = 0.2f;
 		g_params.relaxationFactor = 1.f;
 		g_params.damping = 0.14f;
+
+		g_params.shapeCollisionMargin = shapeCollisionMargin; //0.01f
+		g_params.collisionDistance = collisionDistance;
 
 		float restDistance = radius*0.55f;
 		Emitter e1;
@@ -311,9 +289,9 @@ public:
 		
 
 		// expand radius for better self collision
-		// g_params.radius *= 1.5f;
+		g_params.radius *= 1.5f;
 
-		// g_lightDistance *= 1.5f;
+		g_lightDistance *= 1.5f;
 
 		
 	}
@@ -388,9 +366,9 @@ public:
 		// std::cout << "particleOffset:" << particleOffset << std::endl; //0->7021
 		// std::cout << "indexOffset:" << indexOffset << std::endl; //0->7021
 		
-		std::cout << "asset->numShapeIndices:" << asset->numShapeIndices << std::endl; //3213
-		std::cout << "asset->numShapes:" << asset->numShapes << std::endl; //50
-		std::cout << "asset->numParticles:" << asset->numParticles << std::endl; //1024
+		// std::cout << "asset->numShapeIndices:" << asset->numShapeIndices << std::endl; //3213
+		// std::cout << "asset->numShapes:" << asset->numShapes << std::endl; //50
+		// std::cout << "asset->numParticles:" << asset->numParticles << std::endl; //1024
 
 		// add particle data to solver
 		for (int i = 0; i < asset->numParticles; ++i)
@@ -402,8 +380,8 @@ public:
 			g_buffers->phases.push_back(phase);
 		}
 
-		std::cout << "rigidIndices 1:" << g_buffers->rigidIndices.size() << std::endl; //7021
-		std::cout << "rigidOffsets 1:" << g_buffers->rigidOffsets.size() << std::endl; //2 -> 0, 7021
+		// std::cout << "rigidIndices 1:" << g_buffers->rigidIndices.size() << std::endl; //7021
+		// std::cout << "rigidOffsets 1:" << g_buffers->rigidOffsets.size() << std::endl; //2 -> 0, 7021
 
 		// add shape data to solver
 		for (int i = 0; i < asset->numShapeIndices; ++i)

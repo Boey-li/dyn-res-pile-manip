@@ -2541,7 +2541,10 @@ void pyflex_init(bool headless=false) {
 
     // copied from softgym 37
     g_scenes.push_back(new by_SoftBody("Soft Body")); //37
-    g_scenes.push_back(new by_RopeGranular("Rope Granular")); //38
+    g_scenes.push_back(new by_RopeRigid("Rope Granular")); //38
+    
+    // Hetergeneous scenes 05/29/2024
+    g_scenes.push_back(new by_RopeGranular("Rope Granular")); //39
 
 
     /*
