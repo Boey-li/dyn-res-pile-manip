@@ -174,6 +174,8 @@ struct SimBuffers {
 
     NvFlexVector<int> activeIndices;
 
+    NvFlexVector<int> clusters;
+
     // convexes
     NvFlexVector<NvFlexCollisionGeometry> shapeGeometry;
     NvFlexVector<Vec4> shapePositions;
@@ -213,7 +215,7 @@ struct SimBuffers {
     SimBuffers(NvFlexLibrary* l) :
         positions(l), restPositions(l), velocities(l), phases(l), densities(l),
         anisotropy1(l), anisotropy2(l), anisotropy3(l), normals(l), smoothPositions(l),
-        diffusePositions(l), diffuseVelocities(l), diffuseCount(l), activeIndices(l),
+        diffusePositions(l), diffuseVelocities(l), diffuseCount(l), activeIndices(l), clusters(l),
         shapeGeometry(l), shapePositions(l), shapeRotations(l), shapePrevPositions(l),
         shapePrevRotations(l),    shapeFlags(l), rigidOffsets(l), rigidIndices(l), rigidMeshSize(l),
         rigidCoefficients(l), rigidPlasticThresholds(l), rigidPlasticCreeps(l), rigidRotations(l), rigidTranslations(l),
@@ -241,6 +243,8 @@ void MapBuffers(SimBuffers* buffers) {
     buffers->diffuseCount.map();
     buffers->smoothPositions.map();
     buffers->activeIndices.map();
+    
+    buffers->clusters.map();
 
     // convexes
     buffers->shapeGeometry.map();
@@ -293,6 +297,8 @@ void UnmapBuffers(SimBuffers* buffers) {
     buffers->diffuseCount.unmap();
     buffers->smoothPositions.unmap();
     buffers->activeIndices.unmap();
+
+    buffers->clusters.unmap();
 
     // convexes
     buffers->shapeGeometry.unmap();
@@ -353,6 +359,8 @@ void DestroyBuffers(SimBuffers* buffers) {
     buffers->diffuseCount.destroy();
     buffers->smoothPositions.destroy();
     buffers->activeIndices.destroy();
+
+    buffers->clusters.destroy();
 
     // convexes
     buffers->shapeGeometry.destroy();
@@ -2546,235 +2554,6 @@ void pyflex_init(bool headless=false) {
     // Hetergeneous scenes 05/29/2024
     g_scenes.push_back(new by_RopeGranular("Rope Granular")); //39
 
-
-    /*
-    // opening scene
-    g_scenes.push_back(new PotPourri("Pot Pourri"));
-
-    // soft body scenes
-    SoftBody::Instance octopus(make_path(octopus_path, "/data/softs/octopus.obj"));
-    octopus.mScale = Vec3(32.0f);
-    octopus.mClusterSpacing = 2.75f;
-    octopus.mClusterRadius = 3.0f;
-    octopus.mClusterStiffness = 0.15f;
-    octopus.mSurfaceSampling = 1.0f;
-    SoftBody *softOctopusSceneNew = new SoftBody("Soft Octopus");
-    softOctopusSceneNew->AddStack(octopus, 1, 3, 1);
-
-    SoftBody::Instance rope(make_path(rope_path, "/data/rope.obj"));
-    rope.mScale = Vec3(50.0f);
-    rope.mClusterSpacing = 1.5f;
-    rope.mClusterRadius = 0.0f;
-    rope.mClusterStiffness = 0.55f;
-    SoftBody *softRopeSceneNew = new SoftBody("Soft Rope");
-    softRopeSceneNew->AddInstance(rope);
-
-    SoftBody::Instance bowl(make_path(bowl_high_path, "/data/bowl_high.ply"));
-    bowl.mScale = Vec3(10.0f);
-    bowl.mClusterSpacing = 2.0f;
-    bowl.mClusterRadius = 2.0f;
-    bowl.mClusterStiffness = 0.55f;
-    SoftBody *softBowlSceneNew = new SoftBody("Soft Bowl");
-    softBowlSceneNew->AddInstance(bowl);
-
-    SoftBody::Instance cloth(make_path(box_ultra_high_path, "/data/box_ultra_high.ply"));
-    cloth.mScale = Vec3(20.0f, 0.2f, 20.0f);
-    cloth.mClusterSpacing = 1.0f;
-    cloth.mClusterRadius = 2.0f;
-    cloth.mClusterStiffness = 0.2f;
-    cloth.mLinkRadius = 2.0f;
-    cloth.mLinkStiffness = 1.0f;
-    cloth.mSkinningFalloff = 1.0f;
-    cloth.mSkinningMaxDistance = 100.f;
-    SoftBody *softClothSceneNew = new SoftBody("Soft Cloth");
-    softClothSceneNew->mRadius = 0.05f;
-    softClothSceneNew->AddInstance(cloth);
-
-    SoftBody::Instance rod(make_path(box_very_high_path, "/data/box_very_high.ply"));
-    rod.mScale = Vec3(20.0f, 2.0f, 2.0f);
-    rod.mTranslation = Vec3(-0.3f, 1.0f, 0.0f);
-    rod.mClusterSpacing = 2.0f;
-    rod.mClusterRadius = 2.0f;
-    rod.mClusterStiffness = 0.225f;
-    SoftBodyFixed *softRodSceneNew = new SoftBodyFixed("Soft Rod");
-    softRodSceneNew->AddStack(rod, 3);
-
-    SoftBody::Instance teapot(make_path(teapot_path, "/data/teapot.ply"));
-    teapot.mScale = Vec3(25.0f);
-    teapot.mClusterSpacing = 3.0f;
-    teapot.mClusterRadius = 0.0f;
-    teapot.mClusterStiffness = 0.1f;
-    SoftBody *softTeapotSceneNew = new SoftBody("Soft Teapot");
-    softTeapotSceneNew->AddInstance(teapot);
-
-    SoftBody::Instance armadillo(make_path(armadillo_path, "/data/armadillo.ply"));
-    armadillo.mScale = Vec3(25.0f);
-    armadillo.mClusterSpacing = 3.0f;
-    armadillo.mClusterRadius = 0.0f;
-    auto *softArmadilloSceneNew = new SoftBody("Soft Armadillo");
-    softArmadilloSceneNew->AddInstance(armadillo);
-
-    SoftBody::Instance softbunny(make_path(bunny_path, "/data/bunny.ply"));
-    softbunny.mScale = Vec3(20.0f);
-    softbunny.mClusterSpacing = 3.5f;
-    softbunny.mClusterRadius = 0.0f;
-    softbunny.mClusterStiffness = 0.2f;
-    auto *softBunnySceneNew = new SoftBody("Soft Bunny");
-    softBunnySceneNew->AddInstance(softbunny);
-
-    // plastic scenes
-    SoftBody::Instance plasticbunny(bunny_path);
-    plasticbunny.mScale = Vec3(10.0f);
-    plasticbunny.mClusterSpacing = 1.0f;
-    plasticbunny.mClusterRadius = 0.0f;
-    plasticbunny.mClusterStiffness = 0.0f;
-    plasticbunny.mGlobalStiffness = 1.0f;
-    plasticbunny.mClusterPlasticThreshold = 0.0015f;
-    plasticbunny.mClusterPlasticCreep = 0.15f;
-    plasticbunny.mTranslation.y = 5.0f;
-    auto *plasticBunniesSceneNew = new SoftBody("Plastic Bunnies");
-    plasticBunniesSceneNew->mPlinth = true;
-    plasticBunniesSceneNew->AddStack(plasticbunny, 1, 10, 1, true);
-
-    SoftBody::Instance bunny1(bunny_path);
-    bunny1.mScale = Vec3(10.0f);
-    bunny1.mClusterSpacing = 1.0f;
-    bunny1.mClusterRadius = 0.0f;
-    bunny1.mClusterStiffness = 0.0f;
-    bunny1.mGlobalStiffness = 1.0f;
-    bunny1.mClusterPlasticThreshold = 0.0015f;
-    bunny1.mClusterPlasticCreep = 0.15f;
-    bunny1.mTranslation.y = 5.0f;
-    SoftBody::Instance bunny2(bunny_path);
-    bunny2.mScale = Vec3(10.0f);
-    bunny2.mClusterSpacing = 1.0f;
-    bunny2.mClusterRadius = 0.0f;
-    bunny2.mClusterStiffness = 0.0f;
-    bunny2.mGlobalStiffness = 1.0f;
-    bunny2.mClusterPlasticThreshold = 0.0015f;
-    bunny2.mClusterPlasticCreep = 0.30f;
-    bunny2.mTranslation.y = 5.0f;
-    bunny2.mTranslation.x = 2.0f;
-    auto *plasticComparisonScene = new SoftBody("Plastic Comparison");
-    plasticComparisonScene->AddInstance(bunny1);
-    plasticComparisonScene->AddInstance(bunny2);
-    plasticComparisonScene->mPlinth = true;
-
-    SoftBody::Instance stackBox(make_path(box_high_path, "/data/box_high.ply"));
-    stackBox.mScale = Vec3(10.0f);
-    stackBox.mClusterSpacing = 1.5f;
-    stackBox.mClusterRadius = 0.0f;
-    stackBox.mClusterStiffness = 0.0f;
-    stackBox.mGlobalStiffness = 1.0f;
-    stackBox.mClusterPlasticThreshold = 0.0015f;
-    stackBox.mClusterPlasticCreep = 0.25f;
-    stackBox.mTranslation.y = 1.0f;
-    SoftBody::Instance stackSphere(make_path(sphere_path, "/data/sphere.ply"));
-    stackSphere.mScale = Vec3(10.0f);
-    stackSphere.mClusterSpacing = 1.5f;
-    stackSphere.mClusterRadius = 0.0f;
-    stackSphere.mClusterStiffness = 0.0f;
-    stackSphere.mGlobalStiffness = 1.0f;
-    stackSphere.mClusterPlasticThreshold = 0.0015f;
-    stackSphere.mClusterPlasticCreep = 0.25f;
-    stackSphere.mTranslation.y = 2.0f;
-    auto *plasticStackScene = new SoftBody("Plastic Stack");
-    plasticStackScene->AddInstance(stackBox);
-    plasticStackScene->AddInstance(stackSphere);
-    for (int i = 0; i < 3; i++) {
-        stackBox.mTranslation.y += 2.0f;
-        stackSphere.mTranslation.y += 2.0f;
-        plasticStackScene->AddInstance(stackBox);
-        plasticStackScene->AddInstance(stackSphere);
-    }
-
-    g_scenes.push_back(softOctopusSceneNew);
-    g_scenes.push_back(softTeapotSceneNew);
-    g_scenes.push_back(softRopeSceneNew);
-    g_scenes.push_back(softClothSceneNew);
-    g_scenes.push_back(softBowlSceneNew);
-    g_scenes.push_back(softRodSceneNew);
-    g_scenes.push_back(softArmadilloSceneNew);
-    g_scenes.push_back(softBunnySceneNew);
-
-    g_scenes.push_back(plasticBunniesSceneNew);
-    g_scenes.push_back(plasticComparisonScene);
-    g_scenes.push_back(plasticStackScene);
-
-    // collision scenes
-    g_scenes.push_back(new FrictionRamp("Friction Ramp"));
-    g_scenes.push_back(new FrictionMovingShape("Friction Moving Box", 0));
-    g_scenes.push_back(new FrictionMovingShape("Friction Moving Sphere", 1));
-    g_scenes.push_back(new FrictionMovingShape("Friction Moving Capsule", 2));
-    g_scenes.push_back(new FrictionMovingShape("Friction Moving Mesh", 3));
-    g_scenes.push_back(new ShapeCollision("Shape Collision"));
-    g_scenes.push_back(new ShapeChannels("Shape Channels"));
-    g_scenes.push_back(new TriangleCollision("Triangle Collision"));
-    g_scenes.push_back(new LocalSpaceFluid("Local Space Fluid"));
-    g_scenes.push_back(new LocalSpaceCloth("Local Space Cloth"));
-    g_scenes.push_back(new CCDFluid("World Space Fluid"));
-
-    // cloth scenes
-    g_scenes.push_back(new EnvironmentalCloth("Env Cloth Small", 6, 6, 40, 16));
-    g_scenes.push_back(new EnvironmentalCloth("Env Cloth Large", 16, 32, 10, 3));
-    g_scenes.push_back(new FlagCloth("Flag Cloth"));
-    g_scenes.push_back(new Inflatable("Inflatables"));
-    g_scenes.push_back(new ClothLayers("Cloth Layers"));
-    g_scenes.push_back(new SphereCloth("Sphere Cloth"));
-    g_scenes.push_back(new Tearing("Tearing"));
-    g_scenes.push_back(new Pasta("Pasta"));
-
-    // game mesh scenes
-    g_scenes.push_back(new GameMesh("Game Mesh Rigid", 0));
-    g_scenes.push_back(new GameMesh("Game Mesh Particles", 1));
-    g_scenes.push_back(new GameMesh("Game Mesh Fluid", 2));
-    g_scenes.push_back(new GameMesh("Game Mesh Cloth", 3));
-    g_scenes.push_back(new RigidDebris("Rigid Debris"));
-
-    // viscous fluids
-    g_scenes.push_back(new Viscosity("Viscosity Low", 0.5f));
-    g_scenes.push_back(new Viscosity("Viscosity Med", 3.0f));
-    g_scenes.push_back(new Viscosity("Viscosity High", 5.0f, 0.12f));
-    g_scenes.push_back(new Adhesion("Adhesion"));
-    g_scenes.push_back(new GooGun("Goo Gun", true));
-
-    // regular fluids
-    g_scenes.push_back(new Buoyancy("Buoyancy"));
-    g_scenes.push_back(new Melting("Melting"));
-    g_scenes.push_back(new SurfaceTension("Surface Tension Low", 0.0f));
-    g_scenes.push_back(new SurfaceTension("Surface Tension Med", 10.0f));
-    g_scenes.push_back(new SurfaceTension("Surface Tension High", 20.0f));
-    g_scenes.push_back(new DamBreak("DamBreak  5cm", 0.05f));
-    g_scenes.push_back(new DamBreak("DamBreak 10cm", 0.1f));
-    g_scenes.push_back(new DamBreak("DamBreak 15cm", 0.15f));
-    g_scenes.push_back(new RockPool("Rock Pool"));
-    g_scenes.push_back(new RayleighTaylor2D("Rayleigh Taylor 2D"));
-
-    // misc feature scenes
-    g_scenes.push_back(new TriggerVolume("Trigger Volume"));
-    g_scenes.push_back(new ForceField("Force Field"));
-    g_scenes.push_back(new InitialOverlap("Initial Overlap"));
-
-    // rigid body scenes
-    g_scenes.push_back(new RigidPile("Rigid2", 2));
-    g_scenes.push_back(new RigidPile("Rigid4", 4));
-    g_scenes.push_back(new RigidPile("Rigid8", 12));
-    g_scenes.push_back(new BananaPile("Bananas"));
-    g_scenes.push_back(new LowDimensionalShapes("Low Dimensional Shapes"));
-
-    // granular scenes
-    g_scenes.push_back(new GranularPile("Granular Pile"));
-
-    // coupling scenes
-    g_scenes.push_back(new ParachutingBunnies("Parachuting Bunnies"));
-    g_scenes.push_back(new WaterBalloon("Water Balloons"));
-    g_scenes.push_back(new RigidFluidCoupling("Rigid Fluid Coupling"));
-    g_scenes.push_back(new FluidBlock("Fluid Block"));
-    g_scenes.push_back(new FluidClothCoupling("Fluid Cloth Coupling Water", false));
-    g_scenes.push_back(new FluidClothCoupling("Fluid Cloth Coupling Goo", true));
-    g_scenes.push_back(new BunnyBath("Bunny Bath Dam", true));
-     */
-
     // init graphics
     RenderInitOptions options;
 
@@ -3702,6 +3481,22 @@ float pyflex_get_lightFov() {
     return g_lightFov;
 }
 
+// Added by Baoyu 06/02/2024
+py::array_t<int> pyflex_get_clusters() {
+    g_buffers->clusters.map();
+
+    auto clusters = py::array_t<int>((size_t) g_buffers->clusters.size());
+    auto ptr = (int *) clusters.request().ptr;
+
+    for (size_t i = 0; i < (size_t) g_buffers->clusters.size(); i++) {
+        ptr[i] = g_buffers->clusters[i];
+    }
+
+    g_buffers->clusters.unmap();
+
+    return clusters;
+}
+
 py::array_t<float> pyflex_render(
         int draw_planes, int draw_objects, int draw_shadow, bool render_depth) {
 
@@ -4014,4 +3809,6 @@ PYBIND11_MODULE(pyflex, m) {
 
     m.def("set_floorScaleSize", &pyflex_set_floorScaleSize);
     m.def("get_floorScaleSize", &pyflex_get_floorScaleSize);
+
+    m.def("get_clusters", &pyflex_get_clusters);
 }

@@ -178,27 +178,6 @@ public:
 
 		float shapeCollisionMargin = ptr[28]; //0.01f;
 		float collisionDistance = ptr[29]; //0.03f;
-
-		// add rope
-		// int ropeStart = g_buffers->positions.size();
-		char rope_path[100];
-		Instance rope(make_path(rope_path, "/data/rope.obj"));
-		rope.mScale = rope_scale;
-		rope.mTranslation = rope_trans;
-		rope.mRotation = rope_rotate;
-		rope.mClusterSpacing = clusterSpacing;
-		rope.mClusterRadius = clusterRadius;
-		rope.mClusterStiffness = clusterStiffness;
-		rope.mLinkRadius = linkRadius;
-		rope.mLinkStiffness = linkStiffness;
-		rope.mGlobalStiffness = globalStiffness;
-		rope.mSurfaceSampling = surfaceSampling;
-		rope.mVolumeSampling = volumeSampling;
-		rope.mSkinningFalloff = skinningFalloff;
-		rope.mSkinningMaxDistance = skinningMaxDistance;
-		rope.mClusterPlasticThreshold = clusterPlasticThreshold;
-		rope.mClusterPlasticCreep = clusterPlasticCreep;
-		AddInstance(rope);
 		
 		// granular objects
 		int group = 0;
@@ -231,11 +210,42 @@ public:
 		//std::cout << "group before rope:" << group << std::endl; 
 		std::cout << "g_buffers->rigidOffsets:" << g_buffers->rigidOffsets.size() << std::endl; //1
 		// number of particles
-		std::cout << "g_buffers->positions:" << g_buffers->positions.size() << std::endl; //7021
-		std::cout << g_buffers->rigidMeshSize[0] << std::endl; //0
-		// rope
+		std::cout << "granular positions:" << g_buffers->positions.size() << std::endl; 
+		std::cout << "granular mesh size:" << g_buffers->rigidMeshSize[0] << std::endl; //0
+		
+		int granular_particles = g_buffers->positions.size();
+		g_buffers->clusters.push_back(granular_particles);
+		
+		
+		// add rope
+		// int ropeStart = g_buffers->positions.size();
+		char rope_path[100];
+		Instance rope(make_path(rope_path, "/data/rope.obj"));
+		rope.mScale = rope_scale;
+		rope.mTranslation = rope_trans;
+		rope.mRotation = rope_rotate;
+		rope.mClusterSpacing = clusterSpacing;
+		rope.mClusterRadius = clusterRadius;
+		rope.mClusterStiffness = clusterStiffness;
+		rope.mLinkRadius = linkRadius;
+		rope.mLinkStiffness = linkStiffness;
+		rope.mGlobalStiffness = globalStiffness;
+		rope.mSurfaceSampling = surfaceSampling;
+		rope.mVolumeSampling = volumeSampling;
+		rope.mSkinningFalloff = skinningFalloff;
+		rope.mSkinningMaxDistance = skinningMaxDistance;
+		rope.mClusterPlasticThreshold = clusterPlasticThreshold;
+		rope.mClusterPlasticCreep = clusterPlasticCreep;
+		AddInstance(rope);
+
 		CreateSoftBody(mInstances[0], group++);
 		std::cout << "group after rope:" << group << std::endl; 
+		
+		int rope_particles = g_buffers->positions.size() - granular_particles;
+		g_buffers->clusters.push_back(rope_particles);
+		
+		std::cout << "rope particles:" << rope_particles << std::endl;
+		std::cout << "total positions:" << g_buffers->positions.size() << std::endl; 
 
 		// no fluids or sdf based collision
 		g_solverDesc.featureMode = eNvFlexFeatureModeSimpleSolids;
